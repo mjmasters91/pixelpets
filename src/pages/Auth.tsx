@@ -27,7 +27,7 @@ export function Join() {
   }
 
   return (
-    <form className="card" onSubmit={onSubmit} style={{ maxWidth: 520 }}>
+    <form className="card auth-panel" onSubmit={onSubmit}>
       <p className="kicker">Join</p>
       <h1>Take a quay name</h1>
       <p>Usernames are public. The first confirmed signup is granted 500 Glims by the books, not by this page.</p>
@@ -52,7 +52,7 @@ export function SignIn() {
   const [nextPassword, setNextPassword] = useState("");
 
   return (
-    <div className="card" style={{ maxWidth: 520 }}>
+    <div className="card auth-panel">
       <p className="kicker">Sign in</p>
       <h1>Back to the quay</h1>
       {demo && <p className="banner">Sample mail: mira@example.com, or sender@example.com for the steward desk. Any password works here.</p>}

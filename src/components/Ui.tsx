@@ -1,3 +1,4 @@
+import { artPath } from "../lib/art";
 import { hungerBand, moodBand } from "../lib/rules";
 
 export function Spark({ size = 16 }: { size?: number }) {
@@ -11,7 +12,7 @@ export function Spark({ size = 16 }: { size?: number }) {
 export function Glims({ amount }: { amount: number | null }) {
   return (
     <span className="glim-pill" title="Glims">
-      <Spark />
+      <img className="glim-icon" src={artPath("glim.webp")} alt="" />
       {amount === null ? "—" : amount.toLocaleString()} Glims
     </span>
   );
@@ -23,7 +24,10 @@ export function Meter({ kind, value }: { kind: "hunger" | "mood"; value: number 
   return (
     <div className={`meter tone-${tone}`}>
       <div className="meter-top">
-        <span>{kind === "hunger" ? "Hunger" : "Mood"}</span>
+        <span>
+          <img className="stat-icon" src={artPath(kind === "hunger" ? "hunger.webp" : "mood.webp")} alt="" />
+          {kind === "hunger" ? "Hunger" : "Mood"}
+        </span>
         <strong>{label}</strong>
       </div>
       <div className="meter-track" aria-hidden="true">

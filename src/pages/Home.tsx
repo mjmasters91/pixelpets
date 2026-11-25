@@ -21,8 +21,8 @@ export function Home() {
 
   return (
     <div className="stack">
-      <section className="card hero">
-        <div>
+      <section className="hero-banner">
+        <div className="hero-copy">
           <p className="kicker">Harborlight Quay</p>
           <h1>Welcome to Lumenwick</h1>
           <p>
@@ -33,9 +33,6 @@ export function Home() {
             <Link className="btn" to="/adopt">Visit the Open Nest</Link>
             <Link className="btn secondary" to="/create">Open the Hatchery</Link>
           </div>
-        </div>
-        <div className="hero-pets">
-          <PetPortrait species="lumkin" tint="natural" alt="Luma the Lumkin, green with glowing antlers" />
         </div>
       </section>
 

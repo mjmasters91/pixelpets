@@ -1,4 +1,6 @@
+import { useState } from "react";
 import type { Category } from "../data/catalog";
+import { artPath } from "../lib/art";
 
 const ACCENTS = ["#f0b429", "#2eb6c7", "#f07830", "#8a64c4", "#e36b9a", "#3e9b55", "#5aa2e6"];
 
@@ -8,8 +10,8 @@ function accent(slug: string) {
   return ACCENTS[h % ACCENTS.length];
 }
 
-export function ItemIcon({ slug, category }: { slug: string; category: Category | string }) {
-  const fill = accent(slug);
+function FallbackIcon({ slug, category }: { slug: string; category: string }) {
+  const fill = accent(slug || category);
   return (
     <svg className="item-icon" viewBox="0 0 64 64" aria-hidden="true">
       <rect x="6" y="6" width="52" height="52" rx="18" fill="#fff" stroke="#2c241c" strokeWidth="3" />
@@ -25,5 +27,18 @@ export function ItemIcon({ slug, category }: { slug: string; category: Category 
         <path d="M18 30c2-12 26-12 28 0 1 14-6 20-14 20S17 44 18 30z" fill={fill} stroke="#2c241c" strokeWidth="3" />
       )}
     </svg>
+  );
+}
+
+export function ItemIcon({ slug, category, alt = "" }: { slug: string; category: Category | string; alt?: string }) {
+  const [failed, setFailed] = useState(false);
+  if (!slug || failed) return <FallbackIcon slug={slug} category={category} />;
+  return (
+    <img
+      className="item-icon"
+      src={artPath(`items/${slug}.webp`)}
+      alt={alt}
+      onError={() => setFailed(true)}
+    />
   );
 }

@@ -1,8 +1,24 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
+import { ItemIcon } from "../components/ItemIcon";
 import { Glims } from "../components/Ui";
-import type { TradeView } from "../lib/types";
+import { ITEMS } from "../data/catalog";
+import type { TradeLot, TradeView } from "../lib/types";
 import { useTown } from "../state/Town";
+
+function Lots({ lots }: { lots: TradeLot[] }) {
+  if (!lots.length) return null;
+  return (
+    <span className="lot-row">
+      {lots.map((lot) => (
+        <span className="lot" key={`${lot.itemSlug}-${lot.qty}`}>
+          <ItemIcon slug={lot.itemSlug} category={ITEMS.find((item) => item.slug === lot.itemSlug)?.category ?? "misc"} alt="" />
+          {lot.name} ×{lot.qty}
+        </span>
+      ))}
+    </span>
+  );
+}
 
 export function TradeBoard() {
   const { api, profile, satchel, act } = useTown();
@@ -29,7 +45,7 @@ export function TradeBoard() {
         {rows.map((trade) => (
           <Link key={trade.id} to={`/greenboard/${trade.id}`} className="card">
             <strong>{trade.seller}</strong> asks <Glims amount={trade.askGlims} />
-            <p>{trade.lots.map((lot) => `${lot.name} ×${lot.qty}`).join(", ")}</p>
+            <Lots lots={trade.lots} />
             {trade.wishlist && <p className="muted">Wants: {trade.wishlist}</p>}
           </Link>
         ))}
@@ -72,7 +88,7 @@ export function ListingPage() {
     <div className="card stack">
       <p className="kicker">{trade.status}</p>
       <h1>{trade.seller}’s listing</h1>
-      <p>{trade.lots.map((lot) => `${lot.name} ×${lot.qty}`).join(", ")}</p>
+      <Lots lots={trade.lots} />
       <p>Asking <Glims amount={trade.askGlims} /></p>
       {trade.wishlist && <p>Wishlist: {trade.wishlist}</p>}
       <p className="muted">Expires {new Date(trade.expiresAt).toLocaleString()}</p>
@@ -98,7 +114,7 @@ export function ListingPage() {
       <div>
         {trade.offers.map((offer) => (
           <div key={offer.id} className="thread">
-            <strong>{offer.buyer}</strong> offers <Glims amount={offer.glims} /> {offer.lots.map((lot) => `${lot.name} ×${lot.qty}`).join(", ")} · {offer.status}
+            <strong>{offer.buyer}</strong> offers <Glims amount={offer.glims} /> <Lots lots={offer.lots} /> · {offer.status}
             {mine && offer.status === "open" && <button className="btn" type="button" onClick={() => void act(() => api.acceptOffer(offer.id), "Offer accepted.").then(load)}>Accept</button>}
             {profile?.id === offer.buyerId && offer.status === "open" && <button className="btn ghost" type="button" onClick={() => void act(() => api.withdrawOffer(offer.id), "Offer withdrawn.").then(load)}>Withdraw</button>}
           </div>

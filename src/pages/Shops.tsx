@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ItemIcon } from "../components/ItemIcon";
-import { PetPortrait } from "../components/PetPortrait";
 import { SHOPS } from "../data/catalog";
+import { artPath } from "../lib/art";
 import { Glims } from "../components/Ui";
 import type { ShopView } from "../lib/types";
 import { useTown } from "../state/Town";
@@ -41,35 +41,30 @@ export function ShopPage() {
   if (!shop) return <div className="card"><h1>Lighting the shop…</h1></div>;
   const front = SHOPS.find((item) => item.slug === shop.slug);
   return (
-    <div className="stack">
-      <section className="storefront">
-        <aside className="card keeper-card">
-          <div className="pet-frame"><PetPortrait species={front?.keeperSpecies ?? "lumkin"} alt="" /></div>
-          <h2>{shop.keeper}</h2>
-          <p>{front?.greeting ?? shop.blurb}</p>
-        </aside>
-        <div className={`card land-${LAND_CLASS[shop.landSlug] ?? "harbor"}`}>
+    <div className="shop-stage">
+      <img className="shop-art" src={artPath("shop-interior.webp")} alt="" />
+      <div className="shop-float">
+        <div className="card shop-blurb">
           <p className="kicker">{shop.landName}</p>
           <h1>{shop.name}</h1>
-          <p>{shop.blurb}</p>
-          <p className="muted">Next restock {new Date(shop.nextRestockAt).toLocaleTimeString()} · Wick Time</p>
+          <p>{front?.greeting ?? shop.blurb}</p>
+          <p className="muted">{shop.keeper} · next restock {new Date(shop.nextRestockAt).toLocaleTimeString()}</p>
           {profile && <Glims amount={glims} />}
           <p><Link to={`/lands/${shop.landSlug}/town`}>Back to the town</Link></p>
         </div>
-      </section>
-      <div className="shelf wood-shelf">
-        {shop.lines.map((line) => (
-          <article key={line.itemSlug} className="item-card">
-            <ItemIcon slug={line.itemSlug} category={line.category} />
-            <h3>{line.name}</h3>
-            <p className="muted">{line.description}</p>
-            <p className="muted">{line.rarity} · {line.qty} on the shelf</p>
-            <div className="price"><Glims amount={line.price} /></div>
-            <button className="btn" type="button" disabled={!profile || line.qty < 1} onClick={() => void act(() => api.buy(shop.id, line.itemId, 1, line.price), `Bought ${line.name}.`).then(load)}>
-              {line.qty < 1 ? "Sold out" : "Buy"}
-            </button>
-          </article>
-        ))}
+        <div className="shop-wares">
+          {shop.lines.map((line) => (
+            <article key={line.itemSlug} className="item-card">
+              <ItemIcon slug={line.itemSlug} category={line.category} alt="" />
+              <h3>{line.name}</h3>
+              <p className="muted">{line.qty} on the shelf</p>
+              <div className="price"><Glims amount={line.price} /></div>
+              <button className="btn" type="button" disabled={!profile || line.qty < 1} onClick={() => void act(() => api.buy(shop.id, line.itemId, 1, line.price), `Bought ${line.name}.`).then(load)}>
+                {line.qty < 1 ? "Sold out" : "Buy"}
+              </button>
+            </article>
+          ))}
+        </div>
       </div>
     </div>
   );

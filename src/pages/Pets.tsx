@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { LANDS, PET_CAP, SPECIES, TINTS, speciesBySlug } from "../data/catalog";
 import { PetPortrait } from "../components/PetPortrait";
 import { Meter } from "../components/Ui";
+import { artPath } from "../lib/art";
 import { careLine } from "../lib/rules";
 import type { Companion, Stack } from "../lib/types";
 import { useTown } from "../state/Town";
@@ -27,6 +28,7 @@ export function Pets() {
             </Link>
             <h2>{pet.name}</h2>
             <p className="muted">{pet.speciesName} · level {pet.level} · ring {pet.wins}–{pet.losses}</p>
+            <img className="stat-icon heart-mark" src={artPath("heart.webp")} alt="" />
             <Meter kind="hunger" value={pet.hunger} />
             <Meter kind="mood" value={pet.mood} />
             <p className="muted">{careLine(pet.hunger, pet.mood)}</p>
@@ -133,6 +135,7 @@ export function PetPage() {
         <h1>{pet.name}</h1>
         <p>{speciesBySlug(pet.speciesSlug).blurb}</p>
         <p>{pet.ownerUsername ? <>Keeper <Link to={`/keepers/${pet.ownerUsername}`}>{pet.ownerUsername}</Link></> : "Waiting in the Open Nest."}</p>
+        <img className="stat-icon heart-mark" src={artPath("heart.webp")} alt="" />
         <Meter kind="hunger" value={pet.hunger} />
         <Meter kind="mood" value={pet.mood} />
         <p className="muted">{careLine(pet.hunger, pet.mood)} Hatched {new Date(pet.createdAt).toLocaleDateString()}.</p>

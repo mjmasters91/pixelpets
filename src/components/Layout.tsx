@@ -1,8 +1,20 @@
 import { useEffect, useState } from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { wickClock } from "../lib/rules";
 import { useTown } from "../state/Town";
 import { BrandMark, Glims } from "./Ui";
+
+function sceneFor(path: string) {
+  if (path === "/join" || path === "/sign-in") return "login";
+  if (path === "/create" || path === "/adopt") return "nest";
+  if (path === "/pets" || path.startsWith("/pets/")) return "pets";
+  if (path.startsWith("/shops/") && path !== "/shops") return "shop";
+  if (path === "/arcade" || path.startsWith("/arcade/")) return "arcade";
+  if (path === "/greenboard" || path.startsWith("/greenboard/")) return "trade";
+  if (path === "/ring") return "ring";
+  if (path.startsWith("/ring/")) return "ring-fight";
+  return "";
+}
 
 const LINKS = [
   ["/", "Harborlight"],
@@ -22,11 +34,18 @@ const LINKS = [
 
 export function Layout() {
   const town = useTown();
+  const location = useLocation();
   const [clock, setClock] = useState(wickClock());
   useEffect(() => {
     const timer = window.setInterval(() => setClock(wickClock()), 30000);
     return () => window.clearInterval(timer);
   }, []);
+  useEffect(() => {
+    document.body.dataset.scene = sceneFor(location.pathname);
+    return () => {
+      document.body.dataset.scene = "";
+    };
+  }, [location.pathname]);
   return (
     <>
       {town.demo && (

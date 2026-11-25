@@ -1,9 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { ItemIcon } from "../components/ItemIcon";
 import { PetPortrait } from "../components/PetPortrait";
 import { CHALLENGERS } from "../data/battle";
+import { ITEMS } from "../data/catalog";
+import { artPath } from "../lib/art";
 import type { BattleView } from "../lib/types";
 import { useTown } from "../state/Town";
+
+function gearKey(id: string) {
+  return `pixelpets-gear-${id}`;
+}
 
 export function RingHome() {
   const { api, act, companions, profile, satchel } = useTown();
@@ -28,6 +35,7 @@ export function RingHome() {
       defenderId: mode === "pvp" ? key : undefined,
       gear,
     });
+    sessionStorage.setItem(gearKey(id.id), JSON.stringify(gear));
     window.location.assign(`${import.meta.env.BASE_URL}ring/${id.id}`.replace("//", "/"));
   }
   if (!profile) return <div className="card"><h1>The Ember Ring</h1><p><Link to="/sign-in">Sign in</Link> to step into the ring.</p></div>;
@@ -47,7 +55,10 @@ export function RingHome() {
         <p className="muted">Gear in the satchel. Two slots.</p>
         <div className="row-actions">
           {gearItems.map((item) => (
-            <button key={item.itemSlug} type="button" className={`btn ${gear.includes(item.itemSlug) ? "" : "secondary"}`} onClick={() => toggle(item.itemSlug)}>{item.name}</button>
+            <button key={item.itemSlug} type="button" className={`btn gear-btn ${gear.includes(item.itemSlug) ? "" : "secondary"}`} onClick={() => toggle(item.itemSlug)}>
+              <ItemIcon slug={item.itemSlug} category={item.category} />
+              {item.name}
+            </button>
           ))}
           {gearItems.length === 0 && <span>No ring gear yet. The Shield Step in Cinderreach sells it.</span>}
         </div>
@@ -86,6 +97,19 @@ export function RingArena() {
   const { api, act } = useTown();
   const [battle, setBattle] = useState<BattleView | null>(null);
   const [fx, setFx] = useState<"" | "lunge" | "foe" | "inferno">("");
+  const carried = useMemo(() => {
+    try {
+      const raw = sessionStorage.getItem(gearKey(battleId));
+      const slugs = raw ? JSON.parse(raw) as string[] : [];
+      return slugs.flatMap((slug) => {
+        const item = ITEMS.find((entry) => entry.slug === slug);
+        return item ? [item] : [];
+      });
+    } catch {
+      return [];
+    }
+  }, [battleId]);
+  const sip = carried.find((item) => item.category === "potion");
   useEffect(() => {
     api.getBattle(battleId).then(setBattle).catch(() => setBattle(null));
   }, [api, battleId]);
@@ -96,16 +120,17 @@ export function RingArena() {
     if (recent.includes("Inferno Crown")) setFx("inferno");
     else if (action === "attack") setFx("lunge");
     else setFx("foe");
-    window.setTimeout(() => setFx(""), 720);
+    window.setTimeout(() => setFx(""), 920);
   }
   if (!battle) return <div className="card"><h1>The ring is empty</h1><Link to="/ring">Back</Link></div>;
   const done = battle.status !== "active";
   return (
     <div className="stack">
       <p className="kicker">Ember Ring · round {battle.round}</p>
-      <div className={`ember-arena ${fx === "inferno" ? "is-inferno" : ""}`}>
+      <div className={`ring-stage ${fx === "inferno" ? "is-inferno" : ""}`}>
+        <img className="ring-art" src={artPath("ember-ring-arena.webp")} alt="" />
         {fx === "inferno" && <div className="flame-burst" aria-hidden="true" />}
-        <div className="arena">
+        <div className="ring-fighters">
           <FighterCard who={battle.you} lunge={fx === "lunge" || fx === "inferno"} shake={false} />
           <FighterCard who={battle.foe} lunge={false} shake={fx === "foe" || fx === "inferno"} />
         </div>
@@ -120,7 +145,10 @@ export function RingArena() {
         <div className="row-actions">
           <button className="btn" type="button" onClick={() => void act(() => turn("attack"))}>Attack</button>
           <button className="btn secondary" type="button" onClick={() => void act(() => turn("defend"))}>Defend</button>
-          <button className="btn secondary" type="button" onClick={() => void act(() => turn("item"))}>Use sip</button>
+          <button className="btn secondary gear-btn" type="button" onClick={() => void act(() => turn("item"))}>
+            {sip ? <ItemIcon slug={sip.slug} category={sip.category} /> : null}
+            Use sip
+          </button>
           <button className="btn ghost" type="button" onClick={() => void act(() => turn("flee"))}>Flee</button>
           {battle.you.speciesSlug === "crownwyrm" && (
             <button className="btn inferno" type="button" disabled={battle.you.infernoCd > 0} onClick={() => void act(() => turn("inferno"))}>
@@ -139,10 +167,13 @@ export function RingArena() {
 function FighterCard({ who, shake, lunge }: { who: { name: string; speciesSlug: string; hp: number; maxHp: number }; shake: boolean; lunge: boolean }) {
   const pct = Math.max(0, Math.round((who.hp / who.maxHp) * 100));
   return (
-    <article className={`card fighter ${shake ? "shake" : ""} ${lunge ? "lunge" : ""} ${pct < 35 ? "flash" : ""}`}>
+    <article className={`fighter ${shake ? "shake" : ""} ${lunge ? "lunge" : ""} ${pct < 35 ? "flash" : ""}`}>
       <div className="pet-frame"><PetPortrait species={who.speciesSlug} alt={who.name} /></div>
       <h2>{who.name}</h2>
-      <div className="hp"><div style={{ width: `${pct}%` }} /></div>
+      <div className="hp-row">
+        <img className="stat-icon" src={artPath("heart.webp")} alt="" />
+        <div className="hp"><div style={{ width: `${pct}%` }} /></div>
+      </div>
       <p className="muted">{who.hp} / {who.maxHp}</p>
     </article>
   );
