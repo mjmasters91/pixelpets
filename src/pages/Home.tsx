@@ -21,18 +21,13 @@ export function Home() {
 
   return (
     <div className="stack">
-      <section className="hero-banner">
-        <div className="hero-copy">
-          <p className="kicker">Harborlight Quay</p>
-          <h1>Welcome to Lumenwick</h1>
-          <p>
-            A bright coastal world of ferry hops, restocking shops, and companions who only ask to be fed and played with.
-            Four lands, a quay full of companions, and one currency: Glims.
-          </p>
-          <div className="hero-actions">
-            <Link className="btn" to="/adopt">Visit the Open Nest</Link>
-            <Link className="btn secondary" to="/create">Open the Hatchery</Link>
-          </div>
+      <section className="card welcome-card">
+        <p className="kicker">Harborlight Quay</p>
+        <h1>Welcome to Lumenwick</h1>
+        <p>Ferry hops, restocking shops, and companions who only ask to be fed and played with. The currency is Glims.</p>
+        <div className="hero-actions">
+          <Link className="btn" to="/adopt">Open Nest</Link>
+          <Link className="btn secondary" to="/create">Hatchery</Link>
         </div>
       </section>
 

@@ -126,39 +126,38 @@ export function RingArena() {
   const done = battle.status !== "active";
   return (
     <div className="stack">
-      <p className="kicker">Ember Ring · round {battle.round}</p>
-      <div className={`ring-stage ${fx === "inferno" ? "is-inferno" : ""}`}>
-        <img className="ring-art" src={artPath("ember-ring-arena.webp")} alt="" />
+      <div className={`ring-stand ${fx === "inferno" ? "is-inferno" : ""}`}>
         {fx === "inferno" && <div className="flame-burst" aria-hidden="true" />}
-        <div className="ring-fighters">
-          <FighterCard who={battle.you} lunge={fx === "lunge" || fx === "inferno"} shake={false} />
-          <FighterCard who={battle.foe} lunge={false} shake={fx === "foe" || fx === "inferno"} />
-        </div>
+        <FighterCard who={battle.you} lunge={fx === "lunge" || fx === "inferno"} shake={false} />
+        <FighterCard who={battle.foe} lunge={false} shake={fx === "foe" || fx === "inferno"} />
       </div>
-      {done ? (
-        <section className="card">
-          <h1>{battle.status === "won" ? "The ring is yours" : battle.status === "lost" ? "A bow, and step back" : "You left the ring"}</h1>
-          <p>{battle.rewardXp} experience{battle.rewardGlims ? ` and ${battle.rewardGlims} Glims` : ""}. Level {battle.level}. Record {battle.wins}–{battle.losses}.</p>
-          <Link className="btn" to="/ring">Another bout</Link>
-        </section>
-      ) : (
-        <div className="row-actions">
-          <button className="btn" type="button" onClick={() => void act(() => turn("attack"))}>Attack</button>
-          <button className="btn secondary" type="button" onClick={() => void act(() => turn("defend"))}>Defend</button>
-          <button className="btn secondary gear-btn" type="button" onClick={() => void act(() => turn("item"))}>
-            {sip ? <ItemIcon slug={sip.slug} category={sip.category} /> : null}
-            Use sip
-          </button>
-          <button className="btn ghost" type="button" onClick={() => void act(() => turn("flee"))}>Flee</button>
-          {battle.you.speciesSlug === "crownwyrm" && (
-            <button className="btn inferno" type="button" disabled={battle.you.infernoCd > 0} onClick={() => void act(() => turn("inferno"))}>
-              Inferno Crown{battle.you.infernoCd > 0 ? ` (${battle.you.infernoCd})` : ""}
+      <section className="card ring-dock">
+        <p className="kicker">Ember Ring · round {battle.round}</p>
+        {done ? (
+          <>
+            <h1>{battle.status === "won" ? "The ring is yours" : battle.status === "lost" ? "A bow, and step back" : "You left the ring"}</h1>
+            <p>{battle.rewardXp} experience{battle.rewardGlims ? ` and ${battle.rewardGlims} Glims` : ""}. Level {battle.level}. Record {battle.wins}–{battle.losses}.</p>
+            <Link className="btn" to="/ring">Another bout</Link>
+          </>
+        ) : (
+          <div className="row-actions">
+            <button className="btn" type="button" onClick={() => void act(() => turn("attack"))}>Attack</button>
+            <button className="btn secondary" type="button" onClick={() => void act(() => turn("defend"))}>Defend</button>
+            <button className="btn secondary gear-btn" type="button" onClick={() => void act(() => turn("item"))}>
+              {sip ? <ItemIcon slug={sip.slug} category={sip.category} /> : null}
+              Use sip
             </button>
-          )}
+            <button className="btn ghost" type="button" onClick={() => void act(() => turn("flee"))}>Flee</button>
+            {battle.you.speciesSlug === "crownwyrm" && (
+              <button className="btn inferno" type="button" disabled={battle.you.infernoCd > 0} onClick={() => void act(() => turn("inferno"))}>
+                Inferno Crown{battle.you.infernoCd > 0 ? ` (${battle.you.infernoCd})` : ""}
+              </button>
+            )}
+          </div>
+        )}
+        <div className="battle-log">
+          {battle.log.slice(-4).map((line, index) => <p key={`${index}-${line}`}>{line}</p>)}
         </div>
-      )}
-      <section className="card battle-log">
-        {battle.log.map((line, index) => <p key={`${index}-${line}`}>{line}</p>)}
       </section>
     </div>
   );
