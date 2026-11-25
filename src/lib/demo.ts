@@ -1292,7 +1292,7 @@ export function createDemoApi(asSender: boolean): TownApi {
     async battleOpponents() {
       const me = state.meId;
       return state.pets
-        .filter((pet) => pet.ownerId && pet.ownerId !== me)
+        .filter((pet) => pet.ownerId && pet.ownerId !== me && pet.speciesSlug !== "crownwyrm")
         .map((pet) => ({ id: pet.id, name: pet.name, speciesSlug: pet.speciesSlug, owner: usernameOf(state, pet.ownerId) ?? "Keeper", level: pet.level }));
     },
     async startBattle(input) {
@@ -1318,19 +1318,23 @@ export function createDemoApi(asSender: boolean): TownApi {
         else if (item.category === "potion") potionHeal = Math.max(potionHeal, item.gearPower ?? 0);
         else throw new Error("Only a weapon, a shield, or a sip can be carried in.");
       }
+      if (input.mode === "pvp" && mine.speciesSlug === "crownwyrm") {
+        throw new Error("Crownwyrm bouts stay out of keeper challenges.");
+      }
       const yours = speciesStats(mine.speciesSlug, mine.level);
-      const you: Fighter = { name: mine.name, speciesSlug: mine.speciesSlug, hp: yours.maxHp, maxHp: yours.maxHp, atk: yours.atk, def: yours.def, spd: yours.spd, defending: false, weapon, shield, potionHeal, potionLeft: potionHeal > 0 };
+      const you: Fighter = { name: mine.name, speciesSlug: mine.speciesSlug, hp: yours.maxHp, maxHp: yours.maxHp, atk: yours.atk, def: yours.def, spd: yours.spd, defending: false, weapon, shield, potionHeal, potionLeft: potionHeal > 0, infernoCd: 0, burn: 0 };
       let foe: Fighter;
       if (input.mode === "pve") {
         const challenger = CHALLENGERS.find((row) => row.slug === input.challengerSlug);
         if (!challenger) throw new Error("That challenger is not at the ring.");
         const stats = speciesStats(challenger.speciesSlug, challenger.level);
-        foe = { name: challenger.name, speciesSlug: challenger.speciesSlug, hp: stats.maxHp, maxHp: stats.maxHp, atk: stats.atk, def: stats.def, spd: stats.spd, defending: false, weapon: 0, shield: 0, potionHeal: 0, potionLeft: false };
+        foe = { name: challenger.name, speciesSlug: challenger.speciesSlug, hp: stats.maxHp, maxHp: stats.maxHp, atk: stats.atk, def: stats.def, spd: stats.spd, defending: false, weapon: 0, shield: 0, potionHeal: 0, potionLeft: false, infernoCd: 0, burn: 0 };
       } else {
         const defender = s.pets.find((pet) => pet.id === input.defenderId && pet.ownerId && pet.ownerId !== me.id);
         if (!defender) throw new Error("That companion is not waiting for a challenge.");
+        if (defender.speciesSlug === "crownwyrm") throw new Error("Crownwyrm bouts stay out of keeper challenges.");
         const stats = speciesStats(defender.speciesSlug, defender.level);
-        foe = { name: defender.name, speciesSlug: defender.speciesSlug, hp: stats.maxHp, maxHp: stats.maxHp, atk: stats.atk, def: stats.def, spd: stats.spd, defending: false, weapon: 0, shield: 0, potionHeal: 0, potionLeft: false };
+        foe = { name: defender.name, speciesSlug: defender.speciesSlug, hp: stats.maxHp, maxHp: stats.maxHp, atk: stats.atk, def: stats.def, spd: stats.spd, defending: false, weapon: 0, shield: 0, potionHeal: 0, potionLeft: false, infernoCd: 0, burn: 0 };
       }
       const id = uid();
       const engine: EngineState = { round: 1, status: "active", you, foe, log: [`${you.name} steps into the Ember Ring against ${foe.name}.`] };
@@ -1396,8 +1400,8 @@ function demoBattleView(s: State, id: string): BattleView {
     status: battle.engine.status,
     mode: battle.mode,
     round: battle.engine.round,
-    you: { name: battle.engine.you.name, speciesSlug: battle.engine.you.speciesSlug, hp: battle.engine.you.hp, maxHp: battle.engine.you.maxHp },
-    foe: { name: battle.engine.foe.name, speciesSlug: battle.engine.foe.speciesSlug, hp: battle.engine.foe.hp, maxHp: battle.engine.foe.maxHp },
+    you: { name: battle.engine.you.name, speciesSlug: battle.engine.you.speciesSlug, hp: battle.engine.you.hp, maxHp: battle.engine.you.maxHp, infernoCd: battle.engine.you.infernoCd ?? 0 },
+    foe: { name: battle.engine.foe.name, speciesSlug: battle.engine.foe.speciesSlug, hp: battle.engine.foe.hp, maxHp: battle.engine.foe.maxHp, burn: battle.engine.foe.burn ?? 0 },
     log: battle.engine.log,
     rewardGlims: battle.rewardGlims,
     rewardXp: battle.rewardXp,

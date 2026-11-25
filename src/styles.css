@@ -127,6 +127,11 @@ p { line-height: 1.5; }
 .btn.ghost { background: transparent; box-shadow: none; }
 .btn:disabled { opacity: .55; cursor: not-allowed; transform: none; }
 .btn.danger { background: linear-gradient(180deg, #ffd0dc, #f08aa6); border-color: #c45b7a; box-shadow: inset 0 2px 0 #fff, 0 3px 0 #c45b7a; }
+.btn.inferno {
+  background: linear-gradient(180deg, #ffd27a 0%, #ff5a1f 48%, #c81e12 100%);
+  border-color: #7a140c; color: #fff8e8;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.45), 0 3px 0 #7a140c;
+}
 
 .land-tile, .game-tile, .shop-tile {
   display: block; text-decoration: none; color: inherit; min-height: 140px; position: relative; overflow: hidden;
@@ -239,8 +244,68 @@ p { line-height: 1.5; }
   padding: 14px;
   border-radius: 22px;
 }
+.ember-arena {
+  position: relative;
+  padding: 28px 18px 22px;
+  border-radius: 28px;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 70% 40% at 50% 108%, rgba(255, 70, 10, .85), transparent 62%),
+    radial-gradient(ellipse 40% 22% at 18% 92%, rgba(255, 160, 30, .55), transparent 70%),
+    radial-gradient(ellipse 36% 18% at 82% 88%, rgba(255, 90, 20, .5), transparent 70%),
+    linear-gradient(180deg, #1a0c14 0%, #3a1612 38%, #5a2414 68%, #2a100c 100%);
+  border: 4px solid #6a3418;
+  box-shadow: inset 0 0 50px rgba(255, 80, 0, .28), 0 12px 28px rgba(40, 10, 0, .25);
+}
+.ember-arena::before {
+  content: "";
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  bottom: 16px;
+  height: 46%;
+  border-radius: 50%;
+  background:
+    repeating-conic-gradient(from 8deg, #6d4a36 0 7deg, #4a3024 7deg 13deg);
+  box-shadow:
+    inset 0 0 0 16px #7a5340,
+    inset 0 0 0 22px #2c1812,
+    0 -18px 30px rgba(255, 90, 20, .35);
+  pointer-events: none;
+}
+.ember-arena::after {
+  content: "";
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: 36px;
+  height: 28%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 40%, rgba(255, 210, 120, .35), rgba(255, 80, 20, .15) 45%, transparent 70%);
+  pointer-events: none;
+}
+.ember-arena .arena { position: relative; z-index: 1; }
+.ember-arena .card { background: rgba(255, 248, 236, .94); }
+.flame-burst {
+  position: absolute; right: 18%; top: 18%; width: 220px; height: 220px; border-radius: 50%;
+  background: radial-gradient(circle, #fff4c4 0%, #ffb020 28%, #ff4d1a 58%, transparent 72%);
+  animation: flame 700ms ease-out forwards;
+  pointer-events: none; z-index: 3;
+  filter: blur(0.2px);
+}
+.is-inferno { animation: ringshake 500ms ease; }
+@keyframes flame { from { transform: scale(.4); opacity: 1; } to { transform: scale(1.35); opacity: 0; } }
+@keyframes ringshake { 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-3px); } }
 .arena { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .fighter { text-align: center; }
+.fighter .pet-img { animation: bob 2.6s ease-in-out infinite; }
+.fighter.lunge .pet-img { animation: lunge 700ms ease; }
+@keyframes lunge {
+  0% { transform: translateX(0) scale(1); }
+  28% { transform: translateX(72px) scale(1.08); }
+  58% { transform: translateX(72px) scale(1.08); }
+  100% { transform: translateX(0) scale(1); }
+}
 .hp { height: 16px; border-radius: 999px; background: #f6d5dc; border: 2px solid #c45b7a; overflow: hidden; }
 .hp div { height: 100%; background: linear-gradient(90deg, #7dcc8e, #2f9a55); }
 .shake { animation: hit 280ms ease; }

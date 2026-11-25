@@ -14,6 +14,8 @@ export type Fighter = {
   shield: number;
   potionHeal: number;
   potionLeft: boolean;
+  infernoCd: number;
+  burn: number;
 };
 
 export type BattleStatus = "active" | "won" | "lost" | "fled";
@@ -68,15 +70,43 @@ function foeAction(foe: Fighter, roll: number) {
   return null;
 }
 
-export function resolveTurn(state: EngineState, action: "attack" | "defend" | "item" | "flee", rng: () => number): string[] {
+export function resolveTurn(state: EngineState, action: "attack" | "defend" | "item" | "flee" | "inferno", rng: () => number): string[] {
   if (state.status !== "active") return ["The ring is already quiet."];
   const lines: string[] = [];
   const you = state.you;
   const foe = state.foe;
   const youFirst = you.spd >= foe.spd;
+  if (you.infernoCd > 0) you.infernoCd -= 1;
+  if (foe.burn > 0 && foe.hp > 0) {
+    const burn = 8;
+    foe.hp = Math.max(0, foe.hp - burn);
+    foe.burn -= 1;
+    lines.push(`Inferno Crown keeps burning ${foe.name} for ${burn}.`);
+    if (foe.hp <= 0) state.status = "won";
+  }
 
   const playerAct = () => {
     if (state.status !== "active" || you.hp <= 0) return;
+    if (action === "inferno") {
+      if (you.speciesSlug !== "crownwyrm") {
+        lines.push("Only a Crownwyrm can call Inferno Crown.");
+        return;
+      }
+      if (you.infernoCd > 0) {
+        lines.push(`Inferno Crown is still gathering (${you.infernoCd}).`);
+        return;
+      }
+      const roll = 1 + Math.floor(rng() % 6);
+      const guard = Math.floor(foe.def / 4);
+      const damage = Math.max(14, you.atk + you.weapon + 10 + roll - guard);
+      foe.hp = Math.max(0, foe.hp - damage);
+      foe.defending = false;
+      foe.burn = 2;
+      you.infernoCd = 3;
+      lines.push(`${you.name} calls Inferno Crown. A red flame burst hits ${foe.name} for ${damage}, slipping past the guard.`);
+      if (foe.hp <= 0) state.status = "won";
+      return;
+    }
     if (action === "flee") {
       const chance = Math.max(0.2, Math.min(0.9, 0.55 + (you.spd - foe.spd) * 0.03));
       const roll = rng() / 100;

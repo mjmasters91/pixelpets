@@ -85,25 +85,30 @@ export function RingArena() {
   const { battleId = "" } = useParams();
   const { api, act } = useTown();
   const [battle, setBattle] = useState<BattleView | null>(null);
-  const [shake, setShake] = useState<"you" | "foe" | "">("");
+  const [fx, setFx] = useState<"" | "lunge" | "foe" | "inferno">("");
   useEffect(() => {
     api.getBattle(battleId).then(setBattle).catch(() => setBattle(null));
   }, [api, battleId]);
-  async function turn(action: "attack" | "defend" | "item" | "flee") {
+  async function turn(action: "attack" | "defend" | "item" | "flee" | "inferno") {
     const next = await api.battleTurn(battleId, action);
     setBattle(next);
-    const last = next.log[next.log.length - 1] ?? "";
-    setShake(last.includes(next.you.name) && last.includes("strikes") ? "you" : "foe");
-    window.setTimeout(() => setShake(""), 450);
+    const recent = next.log.slice(-3).join(" ");
+    if (recent.includes("Inferno Crown")) setFx("inferno");
+    else if (action === "attack") setFx("lunge");
+    else setFx("foe");
+    window.setTimeout(() => setFx(""), 720);
   }
   if (!battle) return <div className="card"><h1>The ring is empty</h1><Link to="/ring">Back</Link></div>;
   const done = battle.status !== "active";
   return (
     <div className="stack">
       <p className="kicker">Ember Ring · round {battle.round}</p>
-      <div className="arena">
-        <FighterCard who={battle.you} shake={shake === "you"} />
-        <FighterCard who={battle.foe} shake={shake === "foe"} />
+      <div className={`ember-arena ${fx === "inferno" ? "is-inferno" : ""}`}>
+        {fx === "inferno" && <div className="flame-burst" aria-hidden="true" />}
+        <div className="arena">
+          <FighterCard who={battle.you} lunge={fx === "lunge" || fx === "inferno"} shake={false} />
+          <FighterCard who={battle.foe} lunge={false} shake={fx === "foe" || fx === "inferno"} />
+        </div>
       </div>
       {done ? (
         <section className="card">
@@ -117,6 +122,11 @@ export function RingArena() {
           <button className="btn secondary" type="button" onClick={() => void act(() => turn("defend"))}>Defend</button>
           <button className="btn secondary" type="button" onClick={() => void act(() => turn("item"))}>Use sip</button>
           <button className="btn ghost" type="button" onClick={() => void act(() => turn("flee"))}>Flee</button>
+          {battle.you.speciesSlug === "crownwyrm" && (
+            <button className="btn inferno" type="button" disabled={battle.you.infernoCd > 0} onClick={() => void act(() => turn("inferno"))}>
+              Inferno Crown{battle.you.infernoCd > 0 ? ` (${battle.you.infernoCd})` : ""}
+            </button>
+          )}
         </div>
       )}
       <section className="card battle-log">
@@ -126,10 +136,10 @@ export function RingArena() {
   );
 }
 
-function FighterCard({ who, shake }: { who: { name: string; speciesSlug: string; hp: number; maxHp: number }; shake: boolean }) {
+function FighterCard({ who, shake, lunge }: { who: { name: string; speciesSlug: string; hp: number; maxHp: number }; shake: boolean; lunge: boolean }) {
   const pct = Math.max(0, Math.round((who.hp / who.maxHp) * 100));
   return (
-    <article className={`card fighter ${shake ? "shake" : ""} ${pct < 35 ? "flash" : ""}`}>
+    <article className={`card fighter ${shake ? "shake" : ""} ${lunge ? "lunge" : ""} ${pct < 35 ? "flash" : ""}`}>
       <div className="pet-frame"><PetPortrait species={who.speciesSlug} alt={who.name} /></div>
       <h2>{who.name}</h2>
       <div className="hp"><div style={{ width: `${pct}%` }} /></div>

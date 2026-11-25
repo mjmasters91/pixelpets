@@ -245,7 +245,7 @@ export type TownApi = {
   stewardClearBasket(id: string): Promise<void>;
   battleOpponents(): Promise<{ id: string; name: string; speciesSlug: string; owner: string; level: number }[]>;
   startBattle(input: { companionId: string; mode: "pve" | "pvp"; challengerSlug?: string; defenderId?: string; gear: string[] }): Promise<BattleView>;
-  battleTurn(battleId: string, action: "attack" | "defend" | "item" | "flee"): Promise<BattleView>;
+  battleTurn(battleId: string, action: "attack" | "defend" | "item" | "flee" | "inferno"): Promise<BattleView>;
   getBattle(id: string): Promise<BattleView | null>;
 };
 
@@ -254,8 +254,8 @@ export type BattleView = {
   status: "active" | "won" | "lost" | "fled";
   mode: "pve" | "pvp";
   round: number;
-  you: { name: string; speciesSlug: string; hp: number; maxHp: number };
-  foe: { name: string; speciesSlug: string; hp: number; maxHp: number };
+  you: { name: string; speciesSlug: string; hp: number; maxHp: number; infernoCd: number };
+  foe: { name: string; speciesSlug: string; hp: number; maxHp: number; burn: number };
   log: string[];
   rewardGlims: number;
   rewardXp: number;
