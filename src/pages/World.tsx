@@ -1,6 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import { GAMES, LANDS, SHOPS, SPECIES, landBySlug } from "../data/catalog";
 import { PetPortrait } from "../components/PetPortrait";
+import { useTown } from "../state/Town";
 
 const CLASS: Record<string, string> = { harborlight: "harbor", mossglen: "moss", cinderreach: "cinder", silvershoal: "shoal" };
 
@@ -25,10 +26,11 @@ export function Lands() {
 
 export function LandPage() {
   const { slug = "" } = useParams();
+  const { profile } = useTown();
   const land = LANDS.find((item) => item.slug === slug);
   if (!land) return <div className="card"><h1>Unknown land</h1></div>;
   const shop = SHOPS.find((item) => item.land === land.slug);
-  const residents = SPECIES.filter((species) => species.home === land.slug);
+  const residents = SPECIES.filter((species) => species.home === land.slug && (!species.exclusive || profile?.isAdmin));
   const links = attractions(land.slug);
   return (
     <div className="stack">

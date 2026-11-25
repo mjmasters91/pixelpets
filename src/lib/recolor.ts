@@ -48,7 +48,7 @@ export async function portraitUrl(src: string, speciesSlug: string, tintSlug: st
   if (hit) return hit;
   const tint = findTint(tintSlug);
   const species = findSpecies(speciesSlug);
-  if (!tint || !species || tint.slug === "natural") {
+  if (!tint || !species || tint.slug === "natural" || species.exclusive) {
     cache.set(key, src);
     return src;
   }

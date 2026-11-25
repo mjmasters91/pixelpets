@@ -85,16 +85,17 @@ function CareActions({ pet, satchel, onAct }: { pet: Companion; satchel: Stack[]
 }
 
 function ReleaseHint({ pets, act, apiRelease }: { pets: Companion[]; act: (fn: () => Promise<unknown>, ok?: string) => Promise<boolean>; apiRelease: (id: string) => Promise<void> }) {
-  const [id, setId] = useState(pets[0]?.id ?? "");
+  const releasable = pets.filter((pet) => !speciesBySlug(pet.speciesSlug).exclusive);
+  const [id, setId] = useState(releasable[0]?.id ?? "");
   const [open, setOpen] = useState(false);
-  if (!pets.length) return null;
+  if (!releasable.length) return null;
   return (
     <div className="card">
       <h2>Release to the Open Nest</h2>
       <p>The name stays spoken. You can adopt or hatch again afterward, even if this was your last companion.</p>
       <div className="inline">
         <select value={id} onChange={(e) => setId(e.target.value)}>
-          {pets.map((pet) => <option key={pet.id} value={pet.id}>{pet.name}</option>)}
+          {releasable.map((pet) => <option key={pet.id} value={pet.id}>{pet.name}</option>)}
         </select>
         <button className="btn danger" type="button" onClick={() => setOpen(true)}>Release</button>
       </div>
@@ -143,11 +144,13 @@ export function PetPage() {
 
 export function Hatchery() {
   const { act, api, profile } = useTown();
-  const [species, setSpecies] = useState(SPECIES[0].slug);
+  const roster = SPECIES.filter((item) => !item.exclusive || profile?.isAdmin);
+  const [species, setSpecies] = useState(roster[0].slug);
   const [tint, setTint] = useState("natural");
   const [name, setName] = useState("");
-  const chosen = SPECIES.find((item) => item.slug === species) ?? SPECIES[0];
-  const tintDef = TINTS.find((item) => item.slug === tint) ?? TINTS[0];
+  const chosen = roster.find((item) => item.slug === species) ?? roster[0];
+  const tintChoices = chosen.exclusive ? TINTS.filter((item) => item.slug === "natural") : TINTS;
+  const tintDef = tintChoices.find((item) => item.slug === tint) ?? tintChoices[0];
   return (
     <div className="stack">
       <div>
@@ -157,8 +160,8 @@ export function Hatchery() {
       </div>
       <div className="grid-2">
         <div className="species-grid">
-          {SPECIES.map((item) => (
-            <button key={item.slug} type="button" className={`species-card ${item.slug === species ? "selected" : ""}`} onClick={() => setSpecies(item.slug)}>
+          {roster.map((item) => (
+            <button key={item.slug} type="button" className={`species-card ${item.slug === species ? "selected" : ""}`} onClick={() => { setSpecies(item.slug); if (item.exclusive) setTint("natural"); }}>
               <div className="pet-frame"><PetPortrait species={item.slug} alt="" /></div>
               <h3>{item.name}</h3>
             </button>
@@ -167,15 +170,15 @@ export function Hatchery() {
         <form className="card" onSubmit={(event) => {
           event.preventDefault();
           if (!profile) return;
-          void act(() => api.createCompanion(chosen.id, tintDef.id, name), `${name} has joined you.`);
+          void act(() => api.createCompanion(chosen.id, (chosen.exclusive ? TINTS[0] : tintDef).id, name), `${name} has joined you.`);
         }}>
           <div className="pet-frame" style={{ minHeight: 260 }}>
-            <PetPortrait species={chosen.slug} tint={tint} alt={`${chosen.name} in ${tintDef.name}`} />
+            <PetPortrait species={chosen.slug} tint={chosen.exclusive ? "natural" : tint} alt={`${chosen.name} in ${chosen.exclusive ? "Natural" : tintDef.name}`} />
           </div>
           <h2>{chosen.name}</h2>
           <p>{chosen.blurb}</p>
           <div className="tint-row" role="listbox" aria-label="Tint">
-            {TINTS.map((item) => (
+            {tintChoices.map((item) => (
               <button key={item.slug} type="button" className={`swatch ${item.slug === tint ? "on" : ""}`} style={{ background: item.swatch }} onClick={() => setTint(item.slug)} title={item.name}>
                 <span>{item.name}</span>
               </button>
@@ -207,7 +210,7 @@ export function Adopt() {
     <div>
       <p className="kicker">The Open Nest</p>
       <h1>Adopt a companion</h1>
-      <p>Eighteen species wait in their own colors. Adopting is free. A keeper may travel with four at a time. Want to choose a tint yourself? <Link to="/create">The Hatchery</Link> is next door.</p>
+      <p>The open species wait in their own colors. Adopting is free. A keeper may travel with four at a time. Want to choose a tint yourself? <Link to="/create">The Hatchery</Link> is next door.</p>
       {error && <p className="banner bad">{error}</p>}
       {grouped.map(({ land, pets }) => (
         <section key={land.slug} className="nest-section">

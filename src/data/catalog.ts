@@ -8,6 +8,8 @@ export type Species = {
   home: string;
   baseHue: number;
   blurb: string;
+  /** Steward species. Hidden from public lists, and never released or traded. */
+  exclusive?: boolean;
 };
 
 export type Tint = {
@@ -276,6 +278,16 @@ export const SPECIES: Species[] = [
     baseHue: 355,
     blurb:
       "A red crab with ruby claws and a small shell crown. Proud of its pinch, and gentler than it looks.",
+  },
+  {
+    id: "b0000000-0000-4000-8000-000000000019",
+    slug: "crownwyrm",
+    name: "Crownwyrm",
+    home: "cinderreach",
+    baseHue: 8,
+    exclusive: true,
+    blurb:
+      "A black royal dragon veined with molten red, fiery wings spread, and a small gold crown. It keeps the cliff ovens and does not leave its keeper.",
   },
 ];
 

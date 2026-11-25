@@ -27,7 +27,7 @@ export function Home() {
           <h1>Welcome to Lumenwick</h1>
           <p>
             A bright coastal world of ferry hops, restocking shops, and companions who only ask to be fed and played with.
-            Four lands. Eighteen species. One currency: Glims.
+            Four lands, a quay full of companions, and one currency: Glims.
           </p>
           <div className="hero-actions">
             <Link className="btn" to="/adopt">Visit the Open Nest</Link>

@@ -10,6 +10,7 @@ import {
   SPECIES,
   TINTS,
   findItem,
+  findSpecies,
   gameBySlug,
   itemBySlug,
   shopBySlug,
@@ -147,7 +148,7 @@ type State = {
   rates: Record<string, number>;
 };
 
-let storageKey = "pixelpets-demo-v2";
+let storageKey = "pixelpets-demo-v3";
 let state: State = fresh(false);
 let lastRaw = "";
 const listeners = new Set<() => void>();
@@ -419,7 +420,22 @@ function fresh(asSender: boolean): State {
     { id: "pet-luma", name: "Luma", speciesSlug: "lumkin", tintSlug: "natural", ownerId: owner, hunger: 82, mood: 86, createdAt: stamp, lastTick: stamp, lastPlayedAt: null, lastFedAt: null, lastGroomedAt: null },
     { id: "pet-bub", name: "Bub", speciesSlug: "puddlehop", tintSlug: "natural", ownerId: owner, hunger: 44, mood: 63, createdAt: stamp, lastTick: stamp, lastPlayedAt: null, lastFedAt: null, lastGroomedAt: null },
   ];
+  pets.push({
+    id: "pet-ember-king",
+    name: "Ember King",
+    speciesSlug: "crownwyrm",
+    tintSlug: "natural",
+    ownerId: SENDER,
+    hunger: 100,
+    mood: 100,
+    createdAt: stamp,
+    lastTick: stamp,
+    lastPlayedAt: null,
+    lastFedAt: null,
+    lastGroomedAt: null,
+  });
   for (const species of SPECIES) {
+    if (species.exclusive) continue;
     pets.push({
       id: `nest-${species.slug}`,
       name: NEST[species.slug] ?? species.name,
@@ -534,7 +550,7 @@ export function resetDemo() {
   commit(next);
 }
 export function bootDemo(asSender: boolean) {
-  storageKey = asSender ? "pixelpets-demo-v2-sender" : "pixelpets-demo-v2";
+  storageKey = asSender ? "pixelpets-demo-v3-sender" : "pixelpets-demo-v3";
   const saved = localStorage.getItem(storageKey);
   if (saved) {
     try {
@@ -634,7 +650,14 @@ export function createDemoApi(asSender: boolean): TownApi {
       for (const pet of s.pets) if (!pet.ownerId) changed = tickPet(pet) || changed;
       if (changed) save(s);
       const source = changed ? s : state;
-      return source.pets.filter((p) => !p.ownerId).map((p) => viewPet(source, p));
+      const me = person(source, source.meId);
+      return source.pets
+        .filter((p) => !p.ownerId)
+        .filter((p) => {
+          const species = findSpecies(p.speciesSlug);
+          return !species?.exclusive || Boolean(me?.isAdmin && !me.bannedAt);
+        })
+        .map((p) => viewPet(source, p));
     },
     async createCompanion(speciesId, tintId, name) {
       const s = draft();
@@ -643,6 +666,8 @@ export function createDemoApi(asSender: boolean): TownApi {
       const species = SPECIES.find((sp) => sp.id === speciesId);
       const tint = TINTS.find((t) => t.id === tintId);
       if (!species || !tint) throw new Error("Pick a species and a tint.");
+      if (species.exclusive && (!me.isAdmin || me.bannedAt)) throw new Error("That species is kept for stewards.");
+      if (species.exclusive && tint.slug !== "natural") throw new Error("This companion keeps its own colors.");
       const clean = checkPetName(name);
       if (s.pets.some((p) => p.name.toLowerCase() === clean.toLowerCase())) throw new Error("That name is already spoken in Lumenwick.");
       const id = uid();
@@ -656,6 +681,8 @@ export function createDemoApi(asSender: boolean): TownApi {
       if (ownedCount(s, me.id) >= PET_CAP) throw new Error("A keeper may only have four companions.");
       const pet = s.pets.find((p) => p.id === id);
       if (!pet || pet.ownerId) throw new Error("That companion has already found a keeper.");
+      const species = findSpecies(pet.speciesSlug);
+      if (species?.exclusive && (!me.isAdmin || me.bannedAt)) throw new Error("That companion is not in the Open Nest.");
       pet.ownerId = me.id;
       save(s);
     },
@@ -664,6 +691,7 @@ export function createDemoApi(asSender: boolean): TownApi {
       const me = requireMe(s);
       const pet = s.pets.find((p) => p.id === id && p.ownerId === me.id);
       if (!pet) throw new Error("That companion is not with you.");
+      if (findSpecies(pet.speciesSlug)?.exclusive) throw new Error("This companion stays with their keeper.");
       pet.ownerId = null;
       save(s);
     },
