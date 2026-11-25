@@ -41,7 +41,7 @@ export function KeeperPage() {
           <Link key={pet.id} to={`/pets/${pet.id}`} className="nest-card">
             <div className="pet-frame"><PetPortrait species={pet.speciesSlug} tint={pet.tintSlug} alt={pet.name} /></div>
             <h3>{pet.name}</h3>
-            <p className="muted">{pet.speciesName}</p>
+            <p className="muted">{pet.speciesName} · level {pet.level} · ring {pet.wins}–{pet.losses}</p>
             <Meter kind="hunger" value={pet.hunger} />
             <Meter kind="mood" value={pet.mood} />
           </Link>

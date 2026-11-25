@@ -1,4 +1,4 @@
-export type Category = "food" | "treat" | "toy" | "groom" | "misc";
+export type Category = "food" | "treat" | "toy" | "groom" | "misc" | "weapon" | "shield" | "potion";
 export type Rarity = "common" | "uncommon" | "rare";
 
 export type Species = {
@@ -10,6 +10,10 @@ export type Species = {
   blurb: string;
   /** Steward species. Hidden from public lists, and never released or traded. */
   exclusive?: boolean;
+  baseHp: number;
+  baseAtk: number;
+  baseDef: number;
+  baseSpd: number;
 };
 
 export type Tint = {
@@ -33,6 +37,7 @@ export type Item = {
   hunger: number;
   mood: number;
   reusable: boolean;
+  gearPower?: number;
 };
 
 export type StockLine = {
@@ -52,6 +57,8 @@ export type ShopDef = {
   restockMin: number;
   restockMax: number;
   stock: StockLine[];
+  keeperSpecies?: string;
+  greeting?: string;
 };
 
 export type Land = {
@@ -123,6 +130,10 @@ export const SPECIES: Species[] = [
     name: "Lumkin",
     home: "harborlight",
     baseHue: 92,
+    baseHp: 34,
+    baseAtk: 9,
+    baseDef: 8,
+    baseSpd: 8,
     blurb:
       "A pear-shaped quay companion with lantern antlers and a warm glow in the belly. Curious, gentle, and usually first to the ferry.",
   },
@@ -132,6 +143,10 @@ export const SPECIES: Species[] = [
     name: "Quillora",
     home: "mossglen",
     baseHue: 270,
+    baseHp: 30,
+    baseAtk: 11,
+    baseDef: 7,
+    baseSpd: 12,
     blurb:
       "A long-necked companion in violet, with a gold mane and ink-swirl markings. Quiet, a little proud, fond of shade.",
   },
@@ -141,6 +156,10 @@ export const SPECIES: Species[] = [
     name: "Puddlehop",
     home: "silvershoal",
     baseHue: 196,
+    baseHp: 36,
+    baseAtk: 8,
+    baseDef: 10,
+    baseSpd: 7,
     blurb:
       "A round tide companion in aqua, with a pink ruff and white dew spots. Cheerful, splashy, and hard to fluster.",
   },
@@ -150,6 +169,10 @@ export const SPECIES: Species[] = [
     name: "Pyrlit",
     home: "cinderreach",
     baseHue: 16,
+    baseHp: 32,
+    baseAtk: 13,
+    baseDef: 8,
+    baseSpd: 11,
     blurb:
       "A fiery cliff companion with ember ears, a plated back, and a flame at the tail. Warm-natured, and fond of ovens.",
   },
@@ -159,6 +182,10 @@ export const SPECIES: Species[] = [
     name: "Nimblet",
     home: "harborlight",
     baseHue: 50,
+    baseHp: 28,
+    baseAtk: 10,
+    baseDef: 6,
+    baseSpd: 16,
     blurb:
       "A lemon-bright runner with scoop ears and a red ribbon tail. Quick, playful, and always about to dash.",
   },
@@ -168,6 +195,10 @@ export const SPECIES: Species[] = [
     name: "Mallowgull",
     home: "harborlight",
     baseHue: 332,
+    baseHp: 33,
+    baseAtk: 8,
+    baseDef: 9,
+    baseSpd: 9,
     blurb:
       "A bubblegum-pink puff with a cream cap, tiny wings, and blue feet. Affectionate, and a little vain about the fluff.",
   },
@@ -177,6 +208,10 @@ export const SPECIES: Species[] = [
     name: "Thornu",
     home: "mossglen",
     baseHue: 22,
+    baseHp: 38,
+    baseAtk: 7,
+    baseDef: 13,
+    baseSpd: 6,
     blurb:
       "A shy, low companion in chocolate brown, tiled with magenta petals and a blossom at the tail.",
   },
@@ -186,6 +221,10 @@ export const SPECIES: Species[] = [
     name: "Velune",
     home: "silvershoal",
     baseHue: 242,
+    baseHp: 29,
+    baseAtk: 12,
+    baseDef: 7,
+    baseSpd: 14,
     blurb:
       "A slim night companion in indigo, dusted with stars and finished with a crescent tail. Calm at low tide.",
   },
@@ -195,6 +234,10 @@ export const SPECIES: Species[] = [
     name: "Glacibun",
     home: "silvershoal",
     baseHue: 200,
+    baseHp: 35,
+    baseAtk: 9,
+    baseDef: 11,
+    baseSpd: 8,
     blurb:
       "A round icy-blue companion with cloud-soft fur, long ears, and a crystal horn. It likes wind-bells and the cold edge of the shoals.",
   },
@@ -204,6 +247,10 @@ export const SPECIES: Species[] = [
     name: "Mosscrag",
     home: "mossglen",
     baseHue: 78,
+    baseHp: 42,
+    baseAtk: 8,
+    baseDef: 14,
+    baseSpd: 5,
     blurb:
       "A stack of grey stones that learned to smile, with moss in the cracks and tiny flowers on top. Patient, and happiest in the shade.",
   },
@@ -213,6 +260,10 @@ export const SPECIES: Species[] = [
     name: "Tidewing",
     home: "silvershoal",
     baseHue: 178,
+    baseHp: 30,
+    baseAtk: 11,
+    baseDef: 7,
+    baseSpd: 15,
     blurb:
       "A teal flyer with wide gentle wings and a curl of a tail. It skims the pools and rarely hurries.",
   },
@@ -222,6 +273,10 @@ export const SPECIES: Species[] = [
     name: "Cogwhisk",
     home: "harborlight",
     baseHue: 28,
+    baseHp: 31,
+    baseAtk: 12,
+    baseDef: 9,
+    baseSpd: 10,
     blurb:
       "A copper clockwork companion with bright eyes, curled whiskers, and a gear at the tail. Precise, curious, and proud of its tick.",
   },
@@ -231,6 +286,10 @@ export const SPECIES: Species[] = [
     name: "Bramblebuzz",
     home: "mossglen",
     baseHue: 42,
+    baseHp: 29,
+    baseAtk: 11,
+    baseDef: 7,
+    baseSpd: 13,
     blurb:
       "A black-and-honey bee-bear with a comb belly and small glass wings. Busy, sweet-tempered, and full of pollen gossip.",
   },
@@ -240,6 +299,10 @@ export const SPECIES: Species[] = [
     name: "Dunesprout",
     home: "cinderreach",
     baseHue: 32,
+    baseHp: 33,
+    baseAtk: 9,
+    baseDef: 10,
+    baseSpd: 8,
     blurb:
       "A sandy companion with a striped tail and a crown of warm flowers. Sun-sleepy, and fond of cliff gardens.",
   },
@@ -249,6 +312,10 @@ export const SPECIES: Species[] = [
     name: "Silkmoth",
     home: "harborlight",
     baseHue: 222,
+    baseHp: 28,
+    baseAtk: 10,
+    baseDef: 6,
+    baseSpd: 14,
     blurb:
       "A white fluff of a moth with navy wings patterned in moons. Soft-voiced, and awake when the quay lamps come on.",
   },
@@ -258,6 +325,10 @@ export const SPECIES: Species[] = [
     name: "Berrybop",
     home: "mossglen",
     baseHue: 352,
+    baseHp: 32,
+    baseAtk: 10,
+    baseDef: 8,
+    baseSpd: 9,
     blurb:
       "A raspberry-round companion with a leafy cap and a jam-bright smile. Eager, and easy to please.",
   },
@@ -267,6 +338,10 @@ export const SPECIES: Species[] = [
     name: "Stormuff",
     home: "cinderreach",
     baseHue: 208,
+    baseHp: 36,
+    baseAtk: 13,
+    baseDef: 9,
+    baseSpd: 10,
     blurb:
       "A dark cloud companion stitched with blue lightning. It rumbles, but the thunder is mostly for show.",
   },
@@ -276,6 +351,10 @@ export const SPECIES: Species[] = [
     name: "Rubyclaw",
     home: "cinderreach",
     baseHue: 355,
+    baseHp: 37,
+    baseAtk: 12,
+    baseDef: 12,
+    baseSpd: 7,
     blurb:
       "A red crab with ruby claws and a small shell crown. Proud of its pinch, and gentler than it looks.",
   },
@@ -286,6 +365,10 @@ export const SPECIES: Species[] = [
     home: "cinderreach",
     baseHue: 8,
     exclusive: true,
+    baseHp: 46,
+    baseAtk: 16,
+    baseDef: 13,
+    baseSpd: 11,
     blurb:
       "A black royal dragon veined with molten red, fiery wings spread, and a small gold crown. It keeps the cliff ovens and does not leave its keeper.",
   },
@@ -394,6 +477,7 @@ const item = (
   mood: number,
   reusable: boolean,
   description: string,
+  gearPower = 0,
 ): Item => ({
   id: `d0000000-0000-4000-8000-${String(n).padStart(12, "0")}`,
   slug,
@@ -404,6 +488,7 @@ const item = (
   mood,
   reusable,
   description,
+  gearPower,
 });
 
 export const ITEMS: Item[] = [
@@ -437,7 +522,69 @@ export const ITEMS: Item[] = [
   item(28, "foam-bun", "Foam Bun", "food", "common", 20, 4, false, "A light bun that tastes a little of sea air."),
   item(29, "pebble-marble", "Pebble Marble", "toy", "common", 0, 15, true, "A polished pebble that rolls true."),
   item(30, "paper-star", "Paper Star", "misc", "rare", 0, 0, false, "A folded star. Nice to pass along, not to eat."),
+  item(31, "oat-round", "Oat Round", "food", "common", 22, 2, false, "A floury round from the loaf-roof bakery."),
+  item(32, "sugar-knot", "Sugar Knot", "treat", "common", 10, 8, false, "A twisted sweet with a shiny sugar crust."),
+  item(33, "button-bear", "Button Bear", "toy", "uncommon", 0, 16, true, "A stitched bear with button eyes."),
+  item(34, "marble-hoop", "Marble Hoop", "toy", "common", 0, 14, true, "A hoop that rolls true across the quay stones."),
+  item(35, "foam-brush", "Foam Brush", "groom", "common", 0, 12, true, "A cloud-soft brush from the bubble dome."),
+  item(36, "scent-mist", "Scent Mist", "groom", "common", 0, 10, true, "A light mist that smells like clean linen."),
+  item(37, "wick-charm", "Wick Charm", "toy", "common", 0, 8, true, "A tiny lantern charm that clicks when shaken."),
+  item(38, "skillet-fish", "Skillet Fish", "food", "common", 26, 3, false, "A harbor fish, crisp at the edges."),
+  item(39, "salt-fritters", "Salt Fritters", "food", "common", 18, 2, false, "Little salty fritters from the shell-roof stall."),
+  item(40, "spore-tea", "Spore Tea", "food", "common", 10, 10, false, "A mushroom-cap tea, earthy and kind."),
+  item(41, "puff-salve", "Puff Salve", "groom", "common", 0, 8, true, "A dab of salve for dusty paws."),
+  item(42, "seed-cake", "Seed Cake", "food", "common", 16, 2, false, "A dense cake packed with toasted seeds."),
+  item(43, "sprout-biscuit", "Sprout Biscuit", "food", "common", 14, 2, false, "A green-flecked biscuit from the stump shop."),
+  item(44, "acorn-top", "Acorn Top", "toy", "common", 0, 15, true, "A spinning top carved from an acorn cap."),
+  item(45, "paper-boat", "Paper Boat", "toy", "common", 0, 8, true, "A folded boat for quiet windowsill play."),
+  item(46, "coal-bun", "Coal Bun", "food", "common", 20, 2, false, "A dark, toasty bun from the stone forge."),
+  item(47, "iron-rattle", "Iron Rattle", "toy", "uncommon", 0, 12, true, "A small rattle with a warm iron bell."),
+  item(48, "clay-whistle", "Clay Whistle", "toy", "common", 0, 14, true, "A kiln whistle with one clear note."),
+  item(49, "kiln-mug", "Kiln Mug", "food", "common", 14, 6, false, "A clay mug of spiced cocoa."),
+  item(50, "glimmer-shard", "Glimmer Shard", "misc", "rare", 0, 0, false, "A pretty crystal shard. Not for eating."),
+  item(51, "cave-candy", "Cave Candy", "treat", "uncommon", 8, 10, false, "A hard candy that tastes faintly of minerals."),
+  item(52, "pearl-bead", "Pearl Bead", "toy", "uncommon", 0, 12, true, "A loose pearl bead on a short cord."),
+  item(53, "brine-sweet", "Brine Sweet", "treat", "common", 6, 10, false, "A salty-sweet drop from the open clam."),
+  item(54, "bell-charm", "Bell Charm", "toy", "common", 0, 10, true, "A lighthouse charm with a tiny bell."),
+  item(55, "lamp-biscuit", "Lamp Biscuit", "food", "common", 16, 2, false, "A biscuit stamped with a little lamp."),
+  item(56, "bubble-syrup", "Bubble Syrup", "treat", "uncommon", 8, 12, false, "A spoon of syrup that pops on the tongue."),
+  item(57, "tide-phial", "Tide Phial", "groom", "common", 0, 8, true, "A glass dab of cool tidewater scent."),
+  item(58, "plank-pretzel", "Plank Pretzel", "food", "common", 18, 2, false, "A knot of bread from the driftwood shack."),
+  item(59, "smoke-crisp", "Smoke Crisp", "food", "common", 16, 2, false, "A crisp smoked over driftwood."),
+  item(60, "cinder-fang", "Cinder Fang", "weapon", "uncommon", 0, 0, true, "A short fang-shaped blade for the Ember Ring.", 4),
+  item(61, "cliff-spear", "Cliff Spear", "weapon", "rare", 0, 0, true, "A light spear with a warm metal tip.", 6),
+  item(62, "kiln-shield", "Kiln Shield", "shield", "uncommon", 0, 0, true, "A round shield fired in the dome kiln.", 4),
+  item(63, "pocket-buckler", "Pocket Buckler", "shield", "common", 0, 0, true, "A small buckler that straps to a foreleg.", 2),
+  item(64, "ember-tonic", "Ember Tonic", "potion", "common", 0, 0, false, "A sip that steadies a fighter mid-match.", 16),
+  item(65, "coal-sip", "Coal Sip", "potion", "common", 0, 0, false, "A small bitter sip. It helps, a little.", 8),
+  item(66, "oil-drop", "Oil Drop", "treat", "common", 4, 6, false, "A golden drop that tastes like a warm lamp."),
 ];
+
+function shop(
+  n: number,
+  slug: string,
+  name: string,
+  keeper: string,
+  keeperSpecies: string,
+  greeting: string,
+  land: string,
+  blurb: string,
+  stock: [string, number, number, number][],
+): ShopDef {
+  return {
+    id: `e0000000-0000-4000-8000-${String(n).padStart(12, "0")}`,
+    slug,
+    name,
+    keeper,
+    keeperSpecies,
+    greeting,
+    land,
+    blurb,
+    restockMin: 8,
+    restockMax: 16,
+    stock: stock.map(([itemSlug, price, target, batch]) => ({ itemSlug, price, target, batch })),
+  };
+}
 
 export const SHOPS: ShopDef[] = [
   {
@@ -445,8 +592,10 @@ export const SHOPS: ShopDef[] = [
     slug: "lantern-pantry",
     name: "The Lantern Pantry",
     keeper: "Nim Salla",
+    keeperSpecies: "lumkin",
+    greeting: "The buns are warm and the pencil is sharp. What will you carry home?",
     land: "harborlight",
-    blurb: "Everyday buns, crackers, and the odd shiny cookie. Nim writes the prices in pencil.",
+    blurb: "Everyday buns, crackers, and the odd shiny cookie.",
     restockMin: 8,
     restockMax: 16,
     stock: [
@@ -464,6 +613,8 @@ export const SHOPS: ShopDef[] = [
     slug: "teacup-porch",
     name: "The Teacup Porch",
     keeper: "Bracken Moss",
+    keeperSpecies: "quillora",
+    greeting: "The kettle is singing. Sit a moment, then choose a cup.",
     land: "mossglen",
     blurb: "Forest snacks, teas, and a couple of toys hung from the eaves.",
     restockMin: 8,
@@ -484,8 +635,10 @@ export const SHOPS: ShopDef[] = [
     slug: "emberoven",
     name: "Emberoven",
     keeper: "Soola Vint",
+    keeperSpecies: "pyrlit",
+    greeting: "The chili stall is hot. Mind your whiskers, and pick a bun.",
     land: "cinderreach",
-    blurb: "Spice buns, cocoa, and a grooming puff warmed on the kiln shelf.",
+    blurb: "Spice buns and cocoa from the pepper-roof stall.",
     restockMin: 8,
     restockMax: 16,
     stock: [
@@ -502,8 +655,10 @@ export const SHOPS: ShopDef[] = [
     slug: "shell-and-string",
     name: "Shell & String",
     keeper: "Ivo Pell",
+    keeperSpecies: "velune",
+    greeting: "Shells, string, and a rattle that knows the tide. Look around.",
     land: "silvershoal",
-    blurb: "Tide snacks, shell rattles, and combs strung above the counter.",
+    blurb: "Tide snacks, shell rattles, and combs from the spiral shell.",
     restockMin: 8,
     restockMax: 16,
     stock: [
@@ -516,6 +671,57 @@ export const SHOPS: ShopDef[] = [
       { itemSlug: "pebble-marble", price: 90, target: 3, batch: 1 },
     ],
   },
+  shop(5, "hearth-loaf", "The Hearth Loaf", "Oat Miller", "nimblet", "The ovens never really sleep. Take a round while it is soft.", "harborlight", "Fresh rounds and sugar knots under the bread-loaf roof.", [
+    ["oat-round", 36, 8, 4], ["sugar-knot", 48, 6, 2],
+  ]),
+  shop(6, "bow-attic", "The Bow Attic", "Puff Ribbon", "mallowgull", "Every toy has a bow on it. Please do not eat the bows.", "harborlight", "Stitched toys from the gift-box shop.", [
+    ["button-bear", 110, 2, 1], ["marble-hoop", 95, 3, 1],
+  ]),
+  shop(7, "bubble-dome", "The Bubble Dome", "Mist Pell", "silkmoth", "Hold still. The foam brush is gentler than it looks.", "harborlight", "Brushes and mists under the bubble dome.", [
+    ["foam-brush", 90, 3, 1], ["scent-mist", 70, 4, 1],
+  ]),
+  shop(8, "wick-canvas", "Wick & Canvas", "Cog Bright", "cogwhisk", "Charms, wicks, and a click you can hear.", "harborlight", "Little lantern charms from the striped tent.", [
+    ["wick-charm", 60, 4, 2], ["oil-drop", 40, 6, 2],
+  ]),
+  shop(9, "pink-catch", "The Pink Catch", "Salt Gimble", "mallowgull", "The catch came in with the ferry. It will not wait.", "harborlight", "Harbor fish and fritters under the shell roof.", [
+    ["skillet-fish", 42, 6, 3], ["salt-fritters", 30, 8, 4],
+  ]),
+  shop(10, "cap-and-spore", "Cap & Spore", "Fern Thorn", "thornu", "The remedy hut smells like rain on bark.", "mossglen", "Teas and salves from the mushroom hut.", [
+    ["spore-tea", 34, 6, 3], ["puff-salve", 55, 3, 1],
+  ]),
+  shop(11, "stump-shelf", "The Stump Shelf", "Crag Moss", "mosscrag", "Seeds, cakes, and patience. I have plenty of the last.", "mossglen", "Seed cakes from the tree-stump shop.", [
+    ["seed-cake", 28, 8, 3], ["sprout-biscuit", 24, 8, 4],
+  ]),
+  shop(12, "acorn-rattle", "Acorn Rattle", "Jam Button", "berrybop", "Spin the top. If it falls, spin it again.", "mossglen", "Acorn toys beside the creek.", [
+    ["acorn-top", 100, 3, 1], ["acorn-tart", 60, 4, 2],
+  ]),
+  shop(13, "leaf-nook", "The Leaf Nook", "Buzz Page", "bramblebuzz", "Quiet books, folded boats, and no shouting.", "mossglen", "A leaf-roof nook for small paper things.", [
+    ["paper-boat", 45, 4, 2], ["paper-star", 80, 2, 1],
+  ]),
+  shop(14, "anvil-rest", "Anvil Rest", "Soot Pyr", "pyrlit", "The forge is loud. The buns are not.", "cinderreach", "Forge snacks and a warm iron rattle.", [
+    ["coal-bun", 32, 8, 4], ["iron-rattle", 85, 2, 1],
+  ]),
+  shop(15, "clay-dome", "The Clay Dome", "Kiln Dora", "dunesprout", "Everything here was warm an hour ago.", "cinderreach", "Whistles and mugs from the pottery dome.", [
+    ["clay-whistle", 75, 3, 1], ["kiln-mug", 36, 6, 3],
+  ]),
+  shop(16, "ruby-vein", "Ruby Vein", "Gem Storm", "stormuff", "The crystals hum if you listen. Please do not lick them.", "cinderreach", "Shards and candy from the gem cave.", [
+    ["glimmer-shard", 140, 1, 1], ["cave-candy", 52, 4, 2],
+  ]),
+  shop(17, "shield-step", "The Shield Step", "Warden Pinch", "rubyclaw", "Gear for the Ember Ring. Bring a steady paw.", "cinderreach", "Weapons, shields, and sips for the ring.", [
+    ["cinder-fang", 180, 2, 1], ["cliff-spear", 260, 1, 1], ["kiln-shield", 160, 2, 1], ["pocket-buckler", 90, 3, 1], ["ember-tonic", 50, 6, 3], ["coal-sip", 28, 8, 4],
+  ]),
+  shop(18, "open-clam", "The Open Clam", "Pearl Glint", "glacibun", "Pearls, sweets, and a cool breeze off the pools.", "silvershoal", "Pearl beads from the giant clam.", [
+    ["pearl-bead", 120, 2, 1], ["brine-sweet", 44, 5, 2],
+  ]),
+  shop(19, "bell-lamp", "Bell Lamp", "Keeper North", "tidewing", "The lamp is lit. The charms are cheaper than a ferry.", "silvershoal", "Lighthouse gifts and little biscuits.", [
+    ["bell-charm", 70, 3, 1], ["lamp-biscuit", 28, 8, 4],
+  ]),
+  shop(20, "tide-phials", "Tide Phials", "Bubble Ivo", "puddlehop", "The glass is cool. The syrup pops.", "silvershoal", "Phials and syrup under the glass dome.", [
+    ["bubble-syrup", 48, 4, 2], ["tide-phial", 60, 3, 1],
+  ]),
+  shop(21, "drift-shack", "The Drift Shack", "Plank Sook", "puddlehop", "Driftwood smoke and a pretzel that travels well.", "silvershoal", "Snacks from the driftwood shack.", [
+    ["plank-pretzel", 26, 8, 4], ["smoke-crisp", 24, 8, 4],
+  ]),
 ];
 
 export const GAMES: GameDef[] = [

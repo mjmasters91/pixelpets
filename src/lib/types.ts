@@ -23,6 +23,10 @@ export type Companion = {
   mood: number;
   createdAt: string;
   lastPlayedAt: string | null;
+  level: number;
+  xp: number;
+  wins: number;
+  losses: number;
 };
 
 export type Stack = {
@@ -239,4 +243,24 @@ export type TownApi = {
   stewardLedger(): Promise<LedgerRow[]>;
   stewardFlags(): Promise<FlaggedGame[]>;
   stewardClearBasket(id: string): Promise<void>;
+  battleOpponents(): Promise<{ id: string; name: string; speciesSlug: string; owner: string; level: number }[]>;
+  startBattle(input: { companionId: string; mode: "pve" | "pvp"; challengerSlug?: string; defenderId?: string; gear: string[] }): Promise<BattleView>;
+  battleTurn(battleId: string, action: "attack" | "defend" | "item" | "flee"): Promise<BattleView>;
+  getBattle(id: string): Promise<BattleView | null>;
+};
+
+export type BattleView = {
+  id: string;
+  status: "active" | "won" | "lost" | "fled";
+  mode: "pve" | "pvp";
+  round: number;
+  you: { name: string; speciesSlug: string; hp: number; maxHp: number };
+  foe: { name: string; speciesSlug: string; hp: number; maxHp: number };
+  log: string[];
+  rewardGlims: number;
+  rewardXp: number;
+  level: number;
+  xp: number;
+  wins: number;
+  losses: number;
 };

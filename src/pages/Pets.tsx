@@ -26,7 +26,7 @@ export function Pets() {
               <PetPortrait species={pet.speciesSlug} tint={pet.tintSlug} alt={pet.name} className={pet.hunger < 15 || pet.mood < 15 ? "low-pet" : ""} />
             </Link>
             <h2>{pet.name}</h2>
-            <p className="muted">{pet.speciesName} · {pet.tintName}</p>
+            <p className="muted">{pet.speciesName} · level {pet.level} · ring {pet.wins}–{pet.losses}</p>
             <Meter kind="hunger" value={pet.hunger} />
             <Meter kind="mood" value={pet.mood} />
             <p className="muted">{careLine(pet.hunger, pet.mood)}</p>

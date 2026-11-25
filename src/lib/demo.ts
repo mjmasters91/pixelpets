@@ -1,3 +1,5 @@
+import { CHALLENGERS, BATTLE_REWARD_CAP, BATTLE_REWARD_COUNT } from "../data/battle";
+import { applyXp, resolveTurn, speciesStats, type EngineState, type Fighter } from "./battleEngine";
 import {
   BOARDS,
   GAMES,
@@ -36,6 +38,7 @@ import {
 } from "./rules";
 import type {
   BasketRow,
+  BattleView,
   BoardView,
   CircleView,
   Companion,
@@ -98,6 +101,10 @@ type Pet = {
   lastPlayedAt: string | null;
   lastFedAt: string | null;
   lastGroomedAt: string | null;
+  level: number;
+  xp: number;
+  wins: number;
+  losses: number;
 };
 type StackRow = { profileId: string; itemSlug: string; qty: number };
 type Ledger = { id: string; profileId: string; delta: number; balanceAfter: number; reason: string; createdAt: string };
@@ -146,9 +153,21 @@ type State = {
   invites: Invite[];
   reports: Report[];
   rates: Record<string, number>;
+  battles: DemoBattle[];
 };
 
-let storageKey = "pixelpets-demo-v3";
+type DemoBattle = {
+  id: string;
+  profileId: string;
+  companionId: string;
+  mode: "pve" | "pvp";
+  engine: EngineState;
+  rewardGlims: number;
+  rewardXp: number;
+  gearSlugs: string[];
+};
+
+let storageKey = "pixelpets-demo-v4";
 let state: State = fresh(false);
 let lastRaw = "";
 const listeners = new Set<() => void>();
@@ -212,6 +231,10 @@ function viewPet(s: State, pet: Pet): Companion {
     mood: pet.mood,
     createdAt: pet.createdAt,
     lastPlayedAt: pet.lastPlayedAt,
+    level: pet.level ?? 1,
+    xp: pet.xp ?? 0,
+    wins: pet.wins ?? 0,
+    losses: pet.losses ?? 0,
   };
 }
 function tickPet(pet: Pet) {
@@ -417,8 +440,8 @@ function fresh(asSender: boolean): State {
     { id: SOOK, username: "Sook", displayName: "Sook", bio: "Reads on the moss porch.", email: "sook@example.com", isAdmin: false, bannedAt: null, glims: 180, morningStreak: 0, morningStreakOn: null },
   ];
   const pets: Pet[] = [
-    { id: "pet-luma", name: "Luma", speciesSlug: "lumkin", tintSlug: "natural", ownerId: owner, hunger: 82, mood: 86, createdAt: stamp, lastTick: stamp, lastPlayedAt: null, lastFedAt: null, lastGroomedAt: null },
-    { id: "pet-bub", name: "Bub", speciesSlug: "puddlehop", tintSlug: "natural", ownerId: owner, hunger: 44, mood: 63, createdAt: stamp, lastTick: stamp, lastPlayedAt: null, lastFedAt: null, lastGroomedAt: null },
+    { id: "pet-luma", name: "Luma", speciesSlug: "lumkin", tintSlug: "natural", ownerId: owner, hunger: 82, mood: 86, createdAt: stamp, lastTick: stamp, lastPlayedAt: null, lastFedAt: null, lastGroomedAt: null, level: 1, xp: 0, wins: 0, losses: 0 },
+    { id: "pet-bub", name: "Bub", speciesSlug: "puddlehop", tintSlug: "natural", ownerId: owner, hunger: 44, mood: 63, createdAt: stamp, lastTick: stamp, lastPlayedAt: null, lastFedAt: null, lastGroomedAt: null, level: 1, xp: 0, wins: 0, losses: 0 },
   ];
   pets.push({
     id: "pet-ember-king",
@@ -428,11 +451,33 @@ function fresh(asSender: boolean): State {
     ownerId: SENDER,
     hunger: 100,
     mood: 100,
+    level: 3,
+    xp: 10,
+    wins: 2,
+    losses: 0,
     createdAt: stamp,
     lastTick: stamp,
     lastPlayedAt: null,
     lastFedAt: null,
     lastGroomedAt: null,
+  });
+  pets.push({
+    id: "pet-inkwell",
+    name: "Inkwell",
+    speciesSlug: "quillora",
+    tintSlug: "natural",
+    ownerId: BRAMBLE,
+    hunger: 70,
+    mood: 70,
+    createdAt: stamp,
+    lastTick: stamp,
+    lastPlayedAt: null,
+    lastFedAt: null,
+    lastGroomedAt: null,
+    level: 3,
+    xp: 0,
+    wins: 1,
+    losses: 1,
   });
   for (const species of SPECIES) {
     if (species.exclusive) continue;
@@ -448,7 +493,7 @@ function fresh(asSender: boolean): State {
       lastTick: stamp,
       lastPlayedAt: null,
       lastFedAt: null,
-      lastGroomedAt: null,
+      lastGroomedAt: null, level: 1, xp: 0, wins: 0, losses: 0,
     });
   }
   const stacks: StackRow[] = [
@@ -457,6 +502,9 @@ function fresh(asSender: boolean): State {
     { profileId: owner, itemSlug: "ribbon-ball", qty: 1 },
     { profileId: owner, itemSlug: "tide-comb", qty: 1 },
     { profileId: owner, itemSlug: "moss-tea", qty: 1 },
+    { profileId: owner, itemSlug: "cinder-fang", qty: 1 },
+    { profileId: owner, itemSlug: "kiln-shield", qty: 1 },
+    { profileId: owner, itemSlug: "ember-tonic", qty: 2 },
     { profileId: BRAMBLE, itemSlug: "moss-tea", qty: 2 },
   ];
   const stock: Stock[] = [];
@@ -520,6 +568,7 @@ function fresh(asSender: boolean): State {
     invites: [],
     reports: [],
     rates: {},
+    battles: [],
   };
 }
 
@@ -550,7 +599,7 @@ export function resetDemo() {
   commit(next);
 }
 export function bootDemo(asSender: boolean) {
-  storageKey = asSender ? "pixelpets-demo-v3-sender" : "pixelpets-demo-v3";
+  storageKey = asSender ? "pixelpets-demo-v4-sender" : "pixelpets-demo-v4";
   const saved = localStorage.getItem(storageKey);
   if (saved) {
     try {
@@ -671,7 +720,7 @@ export function createDemoApi(asSender: boolean): TownApi {
       const clean = checkPetName(name);
       if (s.pets.some((p) => p.name.toLowerCase() === clean.toLowerCase())) throw new Error("That name is already spoken in Lumenwick.");
       const id = uid();
-      s.pets.push({ id, name: clean, speciesSlug: species.slug, tintSlug: tint.slug, ownerId: me.id, hunger: 70, mood: 70, createdAt: nowIso(), lastTick: nowIso(), lastPlayedAt: null, lastFedAt: null, lastGroomedAt: null });
+      s.pets.push({ id, name: clean, speciesSlug: species.slug, tintSlug: tint.slug, ownerId: me.id, hunger: 70, mood: 70, createdAt: nowIso(), lastTick: nowIso(), lastPlayedAt: null, lastFedAt: null, lastGroomedAt: null, level: 1, xp: 0, wins: 0, losses: 0 });
       save(s);
       return id;
     },
@@ -1240,8 +1289,123 @@ export function createDemoApi(asSender: boolean): TownApi {
       s.basket = s.basket.filter((b) => b.id !== id);
       save(s);
     },
+    async battleOpponents() {
+      const me = state.meId;
+      return state.pets
+        .filter((pet) => pet.ownerId && pet.ownerId !== me)
+        .map((pet) => ({ id: pet.id, name: pet.name, speciesSlug: pet.speciesSlug, owner: usernameOf(state, pet.ownerId) ?? "Keeper", level: pet.level }));
+    },
+    async startBattle(input) {
+      const s = draft();
+      const me = requireMe(s);
+      rate(s, me.id, "battle", 2000);
+      const mine = s.pets.find((pet) => pet.id === input.companionId && pet.ownerId === me.id);
+      if (!mine) throw new Error("That companion is not with you.");
+      if (s.battles.some((battle) => battle.profileId === me.id && battle.engine.status === "active")) {
+        throw new Error("Finish the bout already in the ring.");
+      }
+      const gear = input.gear.slice(0, 2);
+      let weapon = 0;
+      let shield = 0;
+      let potionHeal = 0;
+      for (const slug of gear) {
+        const item = itemBySlug(slug);
+        if (!s.stacks.some((row) => row.profileId === me.id && row.itemSlug === slug && row.qty > 0)) {
+          throw new Error("That gear is not in the satchel.");
+        }
+        if (item.category === "weapon") weapon += item.gearPower ?? 0;
+        else if (item.category === "shield") shield += item.gearPower ?? 0;
+        else if (item.category === "potion") potionHeal = Math.max(potionHeal, item.gearPower ?? 0);
+        else throw new Error("Only a weapon, a shield, or a sip can be carried in.");
+      }
+      const yours = speciesStats(mine.speciesSlug, mine.level);
+      const you: Fighter = { name: mine.name, speciesSlug: mine.speciesSlug, hp: yours.maxHp, maxHp: yours.maxHp, atk: yours.atk, def: yours.def, spd: yours.spd, defending: false, weapon, shield, potionHeal, potionLeft: potionHeal > 0 };
+      let foe: Fighter;
+      if (input.mode === "pve") {
+        const challenger = CHALLENGERS.find((row) => row.slug === input.challengerSlug);
+        if (!challenger) throw new Error("That challenger is not at the ring.");
+        const stats = speciesStats(challenger.speciesSlug, challenger.level);
+        foe = { name: challenger.name, speciesSlug: challenger.speciesSlug, hp: stats.maxHp, maxHp: stats.maxHp, atk: stats.atk, def: stats.def, spd: stats.spd, defending: false, weapon: 0, shield: 0, potionHeal: 0, potionLeft: false };
+      } else {
+        const defender = s.pets.find((pet) => pet.id === input.defenderId && pet.ownerId && pet.ownerId !== me.id);
+        if (!defender) throw new Error("That companion is not waiting for a challenge.");
+        const stats = speciesStats(defender.speciesSlug, defender.level);
+        foe = { name: defender.name, speciesSlug: defender.speciesSlug, hp: stats.maxHp, maxHp: stats.maxHp, atk: stats.atk, def: stats.def, spd: stats.spd, defending: false, weapon: 0, shield: 0, potionHeal: 0, potionLeft: false };
+      }
+      const id = uid();
+      const engine: EngineState = { round: 1, status: "active", you, foe, log: [`${you.name} steps into the Ember Ring against ${foe.name}.`] };
+      s.battles.unshift({ id, profileId: me.id, companionId: mine.id, mode: input.mode, engine, rewardGlims: 0, rewardXp: 0, gearSlugs: gear });
+      save(s);
+      return demoBattleView(state, id);
+    },
+    async battleTurn(battleId, action) {
+      const s = draft();
+      const me = requireMe(s);
+      rate(s, me.id, "battle-turn", 400);
+      const battle = s.battles.find((row) => row.id === battleId && row.profileId === me.id);
+      if (!battle || battle.engine.status !== "active") throw new Error("That bout is over.");
+      const pet = s.pets.find((row) => row.id === battle.companionId);
+      if (!pet) throw new Error("That companion is not with you.");
+      resolveTurn(battle.engine, action, () => Math.floor(Math.random() * 100));
+      if (battle.engine.status !== "active") {
+        const won = battle.engine.status === "won";
+        const lost = battle.engine.status === "lost";
+        let glims = 0;
+        let xp = 0;
+        if (won) {
+          const tier = battle.mode === "pve" ? (CHALLENGERS.find((row) => row.name === battle.engine.foe.name)?.tier ?? 2) : 3;
+          glims = battle.mode === "pve" ? 40 + tier * 30 : 80;
+          xp = battle.mode === "pve" ? 20 + tier * 10 : 30;
+          const today = wickDateKey();
+          const claim = s.claims.find((row) => row.profileId === me.id && row.key === "ember_ring" && row.on === today);
+          const count = Number(claim?.payload.count ?? 0);
+          const already = Number(claim?.payload.glims ?? 0);
+          if (count >= BATTLE_REWARD_COUNT) glims = 0;
+          else glims = Math.min(glims, Math.max(0, BATTLE_REWARD_CAP - already));
+          if (claim) claim.payload = { count: count + (glims > 0 ? 1 : 0), glims: already + glims };
+          else s.claims.push({ profileId: me.id, key: "ember_ring", on: today, payload: { count: glims > 0 ? 1 : 0, glims } });
+          pet.wins += 1;
+        } else if (lost) {
+          xp = 8;
+          pet.losses += 1;
+        }
+        const leveled = applyXp(pet.level, pet.xp, xp);
+        pet.level = leveled.level;
+        pet.xp = leveled.xp;
+        battle.rewardGlims = glims;
+        battle.rewardXp = xp;
+        if (glims) pay(s, me.id, glims, "other");
+        battle.engine.log.push(won ? `${pet.name} wins the bout.` : lost ? `${pet.name} yields the ring.` : `${pet.name} leaves the ring.`);
+      }
+      save(s);
+      return demoBattleView(state, battleId);
+    },
+    async getBattle(id) {
+      return state.battles.some((battle) => battle.id === id) ? demoBattleView(state, id) : null;
+    },
   };
   return api;
+}
+
+function demoBattleView(s: State, id: string): BattleView {
+  const battle = s.battles.find((row) => row.id === id);
+  if (!battle) throw new Error("That bout is gone.");
+  const pet = s.pets.find((row) => row.id === battle.companionId);
+  return {
+    id: battle.id,
+    status: battle.engine.status,
+    mode: battle.mode,
+    round: battle.engine.round,
+    you: { name: battle.engine.you.name, speciesSlug: battle.engine.you.speciesSlug, hp: battle.engine.you.hp, maxHp: battle.engine.you.maxHp },
+    foe: { name: battle.engine.foe.name, speciesSlug: battle.engine.foe.speciesSlug, hp: battle.engine.foe.hp, maxHp: battle.engine.foe.maxHp },
+    log: battle.engine.log,
+    rewardGlims: battle.rewardGlims,
+    rewardXp: battle.rewardXp,
+    level: pet?.level ?? 1,
+    xp: pet?.xp ?? 0,
+    wins: pet?.wins ?? 0,
+    losses: pet?.losses ?? 0,
+  };
 }
 
 export type { BasketRow, BoardView, CircleView, FlaggedGame, InviteView, LedgerRow, ReportRow, PublicKeeper };

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ItemIcon } from "../components/ItemIcon";
+import { PetPortrait } from "../components/PetPortrait";
 import { SHOPS } from "../data/catalog";
 import { Glims } from "../components/Ui";
 import type { ShopView } from "../lib/types";
@@ -38,16 +39,25 @@ export function ShopPage() {
   useEffect(load, [api, slug]);
   if (error) return <div className="card"><h1>Shop</h1><p className="banner bad">{error}</p></div>;
   if (!shop) return <div className="card"><h1>Lighting the shop…</h1></div>;
+  const front = SHOPS.find((item) => item.slug === shop.slug);
   return (
     <div className="stack">
-      <section className={`card land-${LAND_CLASS[shop.landSlug] ?? "harbor"}`}>
-        <p className="kicker">{shop.landName} · keeper {shop.keeper}</p>
-        <h1>{shop.name}</h1>
-        <p>{shop.blurb}</p>
-        <p className="muted">Next restock {new Date(shop.nextRestockAt).toLocaleTimeString()} · Wick Time</p>
-        {profile && <Glims amount={glims} />}
+      <section className="storefront">
+        <aside className="card keeper-card">
+          <div className="pet-frame"><PetPortrait species={front?.keeperSpecies ?? "lumkin"} alt="" /></div>
+          <h2>{shop.keeper}</h2>
+          <p>{front?.greeting ?? shop.blurb}</p>
+        </aside>
+        <div className={`card land-${LAND_CLASS[shop.landSlug] ?? "harbor"}`}>
+          <p className="kicker">{shop.landName}</p>
+          <h1>{shop.name}</h1>
+          <p>{shop.blurb}</p>
+          <p className="muted">Next restock {new Date(shop.nextRestockAt).toLocaleTimeString()} · Wick Time</p>
+          {profile && <Glims amount={glims} />}
+          <p><Link to={`/lands/${shop.landSlug}/town`}>Back to the town</Link></p>
+        </div>
       </section>
-      <div className="shelf">
+      <div className="shelf wood-shelf">
         {shop.lines.map((line) => (
           <article key={line.itemSlug} className="item-card">
             <ItemIcon slug={line.itemSlug} category={line.category} />

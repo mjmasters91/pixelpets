@@ -11,6 +11,7 @@ const LINKS = [
   ["/adopt", "Open Nest"],
   ["/lands", "Lands"],
   ["/shops", "Shops"],
+  ["/ring", "Ember Ring"],
   ["/greenboard", "Greenboard"],
   ["/arcade", "Arcade"],
   ["/dailies", "Dailies"],

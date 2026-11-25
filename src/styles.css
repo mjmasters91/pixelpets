@@ -206,6 +206,53 @@ p { line-height: 1.5; }
 .low-pet { filter: saturate(.75); }
 .boot-error { max-width: 520px; margin: 15vh auto; padding: 20px; }
 
+.town-map { position: relative; border-radius: 24px; overflow: hidden; border: 3px solid #e2b14a; box-shadow: var(--shadow); }
+.town-map img { width: 100%; height: auto; display: block; }
+.hotspot {
+  position: absolute; border-radius: 18px; text-decoration: none;
+  transition: transform 200ms ease, background 200ms ease, box-shadow 200ms ease;
+}
+.hotspot:hover, .hotspot:focus-visible {
+  background: rgba(255, 214, 102, .28);
+  box-shadow: inset 0 0 0 3px #f0b429, 0 8px 0 rgba(90, 50, 10, .12);
+  transform: translateY(-3px);
+  outline: none;
+  z-index: 2;
+}
+.sign, .tip {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  background: #fff8e4; color: var(--ink); border: 2px solid #c88810; border-radius: 999px;
+  padding: 3px 8px; font-size: 12px; font-weight: 800; white-space: nowrap;
+  opacity: 0; pointer-events: none;
+}
+.sign { top: 18%; }
+.tip { top: 42%; max-width: 90%; white-space: normal; text-align: center; }
+.hotspot:hover .sign, .hotspot:focus-visible .sign, .hotspot:hover .tip, .hotspot:focus-visible .tip { opacity: 1; }
+.town-fallback { display: none; gap: 8px; flex-wrap: wrap; }
+.storefront { display: grid; grid-template-columns: 260px 1fr; gap: 14px; align-items: stretch; }
+.keeper-card { text-align: center; background: linear-gradient(180deg, #fff6df, #f3d7a2); }
+.wood-shelf {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.2), transparent 30%),
+    repeating-linear-gradient(90deg, #e7c48a 0 18px, #d7ae6e 18px 22px);
+  border: 4px solid #8a5a2b;
+  padding: 14px;
+  border-radius: 22px;
+}
+.arena { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.fighter { text-align: center; }
+.hp { height: 16px; border-radius: 999px; background: #f6d5dc; border: 2px solid #c45b7a; overflow: hidden; }
+.hp div { height: 100%; background: linear-gradient(90deg, #7dcc8e, #2f9a55); }
+.shake { animation: hit 280ms ease; }
+.flash { box-shadow: 0 0 0 4px #f07830; }
+@keyframes hit { 30% { transform: translateX(-6px); } 60% { transform: translateX(6px); } }
+.battle-log { max-height: 240px; overflow: auto; }
+@media (max-width: 800px) {
+  .hotspot { display: none; }
+  .town-fallback { display: flex; }
+  .storefront, .arena { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 860px) {
   .grid-2, .hero, .grid-3, .grid-4, .slot-grid { grid-template-columns: 1fr 1fr; }
   .hero { grid-template-columns: 1fr; }

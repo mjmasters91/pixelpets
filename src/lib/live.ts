@@ -457,6 +457,24 @@ export function createLiveApi(): TownApi {
     async stewardClearBasket(id) {
       await rpc("steward_clear_basket", { p_basket_item_id: id });
     },
+    async battleOpponents() {
+      return rpc<{ id: string; name: string; speciesSlug: string; owner: string; level: number }[]>("list_pvp_targets");
+    },
+    async startBattle(input) {
+      return rpc("start_battle", {
+        p_companion_id: input.companionId,
+        p_mode: input.mode,
+        p_challenger_slug: input.challengerSlug ?? null,
+        p_defender_id: input.defenderId ?? null,
+        p_gear: input.gear.map((slug) => itemBySlug(slug).id),
+      });
+    },
+    async battleTurn(battleId, action) {
+      return rpc("battle_turn", { p_battle_id: battleId, p_action: action });
+    },
+    async getBattle(id) {
+      return rpc("get_battle", { p_battle_id: id });
+    },
   };
 }
 
