@@ -479,6 +479,17 @@ body[data-scene="login"] .shell {
 body[data-scene="login"] .btn.ghost { color: #ffe08a; border-color: #ffe08a; }
 body[data-scene="shop"] .shop-blurb { max-width: 280px; }
 body[data-scene="shop"] .shop-page { margin-top: 6vh; }
+.rank-row { display: grid; grid-template-columns: 36px 72px 1fr auto; gap: 10px; align-items: center; }
+.rank-row.yours, .challenge-row.yours { box-shadow: 0 0 0 3px #ffe08a, 0 8px 0 rgba(0,0,0,.22); }
+.rank-num { font-family: var(--display); font-size: 28px; }
+.rank-pet { height: 72px; margin: 0; }
+.rank-pet img, .challenge-pet { width: 64px; height: 64px; object-fit: contain; }
+.challenge-row { display: flex; gap: 8px; align-items: center; }
+.challenge-row span { flex: 1; }
+@media (max-width: 700px) {
+  .rank-row { grid-template-columns: 28px 56px 1fr; }
+  .rank-row .btn { grid-column: 1 / -1; }
+}
 .shop-wares {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));

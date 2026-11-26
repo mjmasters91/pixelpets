@@ -105,7 +105,28 @@ type Pet = {
   xp: number;
   wins: number;
   losses: number;
+  rating?: number;
+  pveWins?: number;
+  pveLosses?: number;
+  pveStreak?: number;
+  pvpWins?: number;
+  pvpLosses?: number;
+  pvpStreak?: number;
 };
+type Bout = {
+  id: string;
+  at: string;
+  challengerId: string;
+  defenderId: string;
+  challengerName: string;
+  challengerOwner: string;
+  defenderName: string;
+  defenderOwner: string;
+  challengerWon: boolean;
+  rated: boolean;
+  delta: number;
+};
+type Notice = { id: string; profileId: string; body: string; at: string };
 type StackRow = { profileId: string; itemSlug: string; qty: number };
 type Ledger = { id: string; profileId: string; delta: number; balanceAfter: number; reason: string; createdAt: string };
 type Claim = { profileId: string; key: string; on: string; payload: Record<string, unknown> };
@@ -154,6 +175,8 @@ type State = {
   reports: Report[];
   rates: Record<string, number>;
   battles: DemoBattle[];
+  bouts: Bout[];
+  notices: Notice[];
 };
 
 type DemoBattle = {
@@ -165,9 +188,12 @@ type DemoBattle = {
   rewardGlims: number;
   rewardXp: number;
   gearSlugs: string[];
+  defenderId: string | null;
+  rated: boolean;
+  ratingDelta?: number;
 };
 
-let storageKey = "pixelpets-demo-v4";
+let storageKey = "pixelpets-demo-v5";
 let state: State = fresh(false);
 let lastRaw = "";
 const listeners = new Set<() => void>();
@@ -235,6 +261,13 @@ function viewPet(s: State, pet: Pet): Companion {
     xp: pet.xp ?? 0,
     wins: pet.wins ?? 0,
     losses: pet.losses ?? 0,
+    rating: pet.rating ?? 1000,
+    pveWins: pet.pveWins ?? 0,
+    pveLosses: pet.pveLosses ?? 0,
+    pveStreak: pet.pveStreak ?? 0,
+    pvpWins: pet.pvpWins ?? 0,
+    pvpLosses: pet.pvpLosses ?? 0,
+    pvpStreak: pet.pvpStreak ?? 0,
   };
 }
 function tickPet(pet: Pet) {
@@ -440,7 +473,7 @@ function fresh(asSender: boolean): State {
     { id: SOOK, username: "Sook", displayName: "Sook", bio: "Reads on the moss porch.", email: "sook@example.com", isAdmin: false, bannedAt: null, glims: 180, morningStreak: 0, morningStreakOn: null },
   ];
   const pets: Pet[] = [
-    { id: "pet-luma", name: "Luma", speciesSlug: "lumkin", tintSlug: "natural", ownerId: owner, hunger: 82, mood: 86, createdAt: stamp, lastTick: stamp, lastPlayedAt: null, lastFedAt: null, lastGroomedAt: null, level: 1, xp: 0, wins: 0, losses: 0 },
+    { id: "pet-luma", name: "Luma", speciesSlug: "lumkin", tintSlug: "natural", ownerId: owner, hunger: 82, mood: 86, createdAt: stamp, lastTick: stamp, lastPlayedAt: null, lastFedAt: null, lastGroomedAt: null, level: 1, xp: 0, wins: 5, losses: 2, rating: 1260, pvpWins: 5, pvpLosses: 2, pvpStreak: 2 },
     { id: "pet-bub", name: "Bub", speciesSlug: "puddlehop", tintSlug: "natural", ownerId: owner, hunger: 44, mood: 63, createdAt: stamp, lastTick: stamp, lastPlayedAt: null, lastFedAt: null, lastGroomedAt: null, level: 1, xp: 0, wins: 0, losses: 0 },
   ];
   pets.push({
@@ -476,8 +509,27 @@ function fresh(asSender: boolean): State {
     lastGroomedAt: null,
     level: 3,
     xp: 0,
-    wins: 1,
-    losses: 1,
+    wins: 8,
+    losses: 3,
+    rating: 1124,
+    pvpWins: 6,
+    pvpLosses: 2,
+    pvpStreak: 2,
+  });
+  pets.push({
+    id: "pet-coal", name: "Coal", speciesSlug: "pyrlit", tintSlug: "natural", ownerId: SOOK,
+    hunger: 80, mood: 80, createdAt: stamp, lastTick: stamp, lastPlayedAt: null, lastFedAt: null, lastGroomedAt: null,
+    level: 4, xp: 10, wins: 11, losses: 4, rating: 1188, pvpWins: 8, pvpLosses: 3, pvpStreak: 3,
+  });
+  pets.push({
+    id: "pet-pebble", name: "Pebble", speciesSlug: "glacibun", tintSlug: "natural", ownerId: PELL,
+    hunger: 75, mood: 70, createdAt: stamp, lastTick: stamp, lastPlayedAt: null, lastFedAt: null, lastGroomedAt: null,
+    level: 2, xp: 4, wins: 5, losses: 4, rating: 1036, pvpWins: 4, pvpLosses: 4, pvpStreak: 1,
+  });
+  pets.push({
+    id: "pet-nib", name: "Nib", speciesSlug: "silkmoth", tintSlug: "natural", ownerId: MINA,
+    hunger: 66, mood: 80, createdAt: stamp, lastTick: stamp, lastPlayedAt: null, lastFedAt: null, lastGroomedAt: null,
+    level: 2, xp: 8, wins: 2, losses: 5, rating: 960, pvpWins: 2, pvpLosses: 5, pvpStreak: 0,
   });
   for (const species of SPECIES) {
     if (species.exclusive) continue;
@@ -569,6 +621,15 @@ function fresh(asSender: boolean): State {
     reports: [],
     rates: {},
     battles: [],
+    bouts: [
+      { id: "bout-1", at: stamp, challengerId: "pet-coal", defenderId: "pet-inkwell", challengerName: "Coal", challengerOwner: "Sook", defenderName: "Inkwell", defenderOwner: "Bramble", challengerWon: true, rated: true, delta: 14 },
+      { id: "bout-2", at: stamp, challengerId: "pet-inkwell", defenderId: "pet-pebble", challengerName: "Inkwell", challengerOwner: "Bramble", defenderName: "Pebble", defenderOwner: "Pell", challengerWon: true, rated: true, delta: 11 },
+      { id: "bout-3", at: stamp, challengerId: "pet-luma", defenderId: "pet-nib", challengerName: "Luma", challengerOwner: asSender ? "Sender" : "Mira", defenderName: "Nib", defenderOwner: "Mina", challengerWon: true, rated: true, delta: 18 },
+      { id: "bout-4", at: stamp, challengerId: "pet-coal", defenderId: "pet-luma", challengerName: "Coal", challengerOwner: "Sook", defenderName: "Luma", defenderOwner: asSender ? "Sender" : "Mira", challengerWon: true, rated: true, delta: 9 },
+    ],
+    notices: [
+      { id: "note-1", profileId: owner, body: "Luma defended against Coal: lost", at: stamp },
+    ],
   };
 }
 
@@ -599,7 +660,7 @@ export function resetDemo() {
   commit(next);
 }
 export function bootDemo(asSender: boolean) {
-  storageKey = asSender ? "pixelpets-demo-v4-sender" : "pixelpets-demo-v4";
+  storageKey = asSender ? "pixelpets-demo-v5-sender" : "pixelpets-demo-v5";
   const saved = localStorage.getItem(storageKey);
   if (saved) {
     try {
@@ -627,6 +688,76 @@ function dailyStatus(s: State, me: Person): DailyStatus {
     nextMorningGlims: morningPayout(streak),
     tideClaimed: Boolean(tide),
     basketTaken: Number(basket?.payload.count ?? 0),
+  };
+}
+
+function eloDelta(mine: number, theirs: number, score: number) {
+  const expected = 1 / (1 + 10 ** ((theirs - mine) / 400));
+  return Math.round(32 * (score - expected));
+}
+
+function demoRankings(s: State, board: "pets" | "keepers" | "week") {
+  const me = s.meId;
+  const pets = s.pets.filter((pet) => pet.ownerId && pet.speciesSlug !== "crownwyrm");
+  if (board === "keepers") {
+    const groups = new Map<string, { owner: string; wins: number; rating: number; name: string; speciesSlug: string; yours: boolean }>();
+    for (const pet of pets) {
+      const key = pet.ownerId ?? "";
+      const current = groups.get(key) ?? { owner: usernameOf(s, pet.ownerId) ?? "Keeper", wins: 0, rating: 0, name: pet.name, speciesSlug: pet.speciesSlug, yours: pet.ownerId === me };
+      current.wins += pet.pvpWins ?? 0;
+      if ((pet.rating ?? 1000) >= current.rating) {
+        current.rating = pet.rating ?? 1000;
+        current.name = pet.name;
+        current.speciesSlug = pet.speciesSlug;
+      }
+      groups.set(key, current);
+    }
+    const rows = [...groups.values()].sort((a, b) => b.wins - a.wins || a.owner.localeCompare(b.owner)).slice(0, 40);
+    return { board, rows: rows.map((row, index) => ({ rank: index + 1, name: row.name, speciesSlug: row.speciesSlug, owner: row.owner, rating: row.rating, pvpWins: row.wins, yours: row.yours })) };
+  }
+  if (board === "week") {
+    const counts = new Map<string, number>();
+    for (const bout of s.bouts ?? []) {
+      const winner = bout.challengerWon ? bout.challengerId : bout.defenderId;
+      counts.set(winner, (counts.get(winner) ?? 0) + 1);
+    }
+    const rows = [...counts.entries()].flatMap(([id, weekWins]) => {
+      const pet = pets.find((item) => item.id === id);
+      return pet ? [{ pet, weekWins }] : [];
+    }).sort((a, b) => b.weekWins - a.weekWins || a.pet.name.localeCompare(b.pet.name)).slice(0, 40);
+    return {
+      board,
+      rows: rows.map((row, index) => ({
+        rank: index + 1,
+        companionId: row.pet.id,
+        name: row.pet.name,
+        speciesSlug: row.pet.speciesSlug,
+        owner: usernameOf(s, row.pet.ownerId) ?? "Keeper",
+        rating: row.pet.rating ?? 1000,
+        pvpWins: row.pet.pvpWins ?? 0,
+        pvpLosses: row.pet.pvpLosses ?? 0,
+        pvpStreak: row.pet.pvpStreak ?? 0,
+        weekWins: row.weekWins,
+        yours: row.pet.ownerId === me,
+      })),
+    };
+  }
+  const rows = [...pets].sort((a, b) => (b.rating ?? 1000) - (a.rating ?? 1000) || (b.pvpWins ?? 0) - (a.pvpWins ?? 0) || a.name.localeCompare(b.name)).slice(0, 40);
+  return {
+    board: "pets",
+    rows: rows.map((pet, index) => ({
+      rank: index + 1,
+      companionId: pet.id,
+      name: pet.name,
+      speciesSlug: pet.speciesSlug,
+      owner: usernameOf(s, pet.ownerId) ?? "Keeper",
+      level: pet.level,
+      rating: pet.rating ?? 1000,
+      pvpWins: pet.pvpWins ?? 0,
+      pvpLosses: pet.pvpLosses ?? 0,
+      pvpStreak: pet.pvpStreak ?? 0,
+      yours: pet.ownerId === me,
+    })),
   };
 }
 
@@ -1293,7 +1424,38 @@ export function createDemoApi(asSender: boolean): TownApi {
       const me = state.meId;
       return state.pets
         .filter((pet) => pet.ownerId && pet.ownerId !== me && pet.speciesSlug !== "crownwyrm")
-        .map((pet) => ({ id: pet.id, name: pet.name, speciesSlug: pet.speciesSlug, owner: usernameOf(state, pet.ownerId) ?? "Keeper", level: pet.level }));
+        .map((pet) => ({
+          id: pet.id,
+          name: pet.name,
+          speciesSlug: pet.speciesSlug,
+          owner: usernameOf(state, pet.ownerId) ?? "Keeper",
+          level: pet.level,
+          rating: pet.rating ?? 1000,
+          pvpWins: pet.pvpWins ?? 0,
+          pvpLosses: pet.pvpLosses ?? 0,
+          pvpStreak: pet.pvpStreak ?? 0,
+        }))
+        .sort((a, b) => b.rating - a.rating || a.name.localeCompare(b.name));
+    },
+    async ringRankings(board) {
+      return demoRankings(state, board);
+    },
+    async ringRecent() {
+      return (state.bouts ?? []).slice(0, 20).map((bout) => ({
+        id: bout.id,
+        at: bout.at,
+        challenger: bout.challengerName,
+        challengerOwner: bout.challengerOwner,
+        defender: bout.defenderName,
+        defenderOwner: bout.defenderOwner,
+        defenderWon: !bout.challengerWon,
+        rated: bout.rated,
+        ratingDelta: bout.delta,
+      }));
+    },
+    async ringNotices() {
+      const me = state.meId;
+      return (state.notices ?? []).filter((note) => note.profileId === me).slice(0, 20);
     },
     async startBattle(input) {
       const s = draft();
@@ -1321,6 +1483,9 @@ export function createDemoApi(asSender: boolean): TownApi {
       if (input.mode === "pvp" && mine.speciesSlug === "crownwyrm") {
         throw new Error("Crownwyrm bouts stay out of keeper challenges.");
       }
+      let defenderId: string | null = null;
+      let rated = false;
+      let unratedNote = "";
       const yours = speciesStats(mine.speciesSlug, mine.level);
       const you: Fighter = { name: mine.name, speciesSlug: mine.speciesSlug, hp: yours.maxHp, maxHp: yours.maxHp, atk: yours.atk, def: yours.def, spd: yours.spd, defending: false, weapon, shield, potionHeal, potionLeft: potionHeal > 0, infernoCd: 0, burn: 0 };
       let foe: Fighter;
@@ -1333,12 +1498,18 @@ export function createDemoApi(asSender: boolean): TownApi {
         const defender = s.pets.find((pet) => pet.id === input.defenderId && pet.ownerId && pet.ownerId !== me.id);
         if (!defender) throw new Error("That companion is not waiting for a challenge.");
         if (defender.speciesSlug === "crownwyrm") throw new Error("Crownwyrm bouts stay out of keeper challenges.");
+        if (defender.ownerId === me.id) throw new Error("You cannot challenge a companion from your own quay.");
+        defenderId = defender.id;
+        const today = wickDateKey();
+        const pair = (s.bouts ?? []).filter((bout) => bout.rated && bout.at.slice(0, 10) === today && ((bout.challengerId === mine.id && bout.defenderId === defender.id) || (bout.challengerId === defender.id && bout.defenderId === mine.id))).length;
+        rated = Math.abs(mine.level - defender.level) <= 8 && Math.abs((mine.rating ?? 1000) - (defender.rating ?? 1000)) <= 400 && pair < 3;
+        if (!rated) unratedNote = " This bout will not move ratings.";
         const stats = speciesStats(defender.speciesSlug, defender.level);
         foe = { name: defender.name, speciesSlug: defender.speciesSlug, hp: stats.maxHp, maxHp: stats.maxHp, atk: stats.atk, def: stats.def, spd: stats.spd, defending: false, weapon: 0, shield: 0, potionHeal: 0, potionLeft: false, infernoCd: 0, burn: 0 };
       }
       const id = uid();
-      const engine: EngineState = { round: 1, status: "active", you, foe, log: [`${you.name} steps into the Ember Ring against ${foe.name}.`] };
-      s.battles.unshift({ id, profileId: me.id, companionId: mine.id, mode: input.mode, engine, rewardGlims: 0, rewardXp: 0, gearSlugs: gear });
+      const engine: EngineState = { round: 1, status: "active", you, foe, log: [`${you.name} steps into the Ember Ring against ${foe.name}.${unratedNote}`] };
+      s.battles.unshift({ id, profileId: me.id, companionId: mine.id, defenderId, rated, mode: input.mode, engine, rewardGlims: 0, rewardXp: 0, gearSlugs: gear });
       save(s);
       return demoBattleView(state, id);
     },
@@ -1369,9 +1540,66 @@ export function createDemoApi(asSender: boolean): TownApi {
           if (claim) claim.payload = { count: count + (glims > 0 ? 1 : 0), glims: already + glims };
           else s.claims.push({ profileId: me.id, key: "ember_ring", on: today, payload: { count: glims > 0 ? 1 : 0, glims } });
           pet.wins += 1;
+          if (battle.mode === "pve") {
+            pet.pveWins = (pet.pveWins ?? 0) + 1;
+            pet.pveStreak = (pet.pveStreak ?? 0) + 1;
+          }
         } else if (lost) {
           xp = 8;
           pet.losses += 1;
+          if (battle.mode === "pve") {
+            pet.pveLosses = (pet.pveLosses ?? 0) + 1;
+            pet.pveStreak = 0;
+          }
+        }
+        if (battle.mode === "pvp" && (won || lost)) {
+          const foe = s.pets.find((row) => row.id === battle.defenderId);
+          const delta = battle.rated && foe ? eloDelta(pet.rating ?? 1000, foe.rating ?? 1000, won ? 1 : 0) : 0;
+          pet.rating = Math.max(100, (pet.rating ?? 1000) + delta);
+          if (won) {
+            pet.pvpWins = (pet.pvpWins ?? 0) + 1;
+            pet.pvpStreak = (pet.pvpStreak ?? 0) + 1;
+          } else {
+            pet.pvpLosses = (pet.pvpLosses ?? 0) + 1;
+            pet.pvpStreak = 0;
+          }
+          if (foe) {
+            foe.rating = Math.max(100, (foe.rating ?? 1000) - delta);
+            if (won) {
+              foe.losses += 1;
+              foe.pvpLosses = (foe.pvpLosses ?? 0) + 1;
+              foe.pvpStreak = 0;
+            } else {
+              foe.wins += 1;
+              foe.pvpWins = (foe.pvpWins ?? 0) + 1;
+              foe.pvpStreak = (foe.pvpStreak ?? 0) + 1;
+            }
+            s.bouts.unshift({
+              id: uid(),
+              at: nowIso(),
+              challengerId: pet.id,
+              defenderId: foe.id,
+              challengerName: pet.name,
+              challengerOwner: usernameOf(s, me.id) ?? "Keeper",
+              defenderName: foe.name,
+              defenderOwner: usernameOf(s, foe.ownerId) ?? "Keeper",
+              challengerWon: won,
+              rated: battle.rated,
+              delta,
+            });
+            if (foe.ownerId) {
+              s.notices.unshift({
+                id: uid(),
+                profileId: foe.ownerId,
+                at: nowIso(),
+                body: `${foe.name} defended against ${pet.name}: ${won ? "lost" : "won"}${battle.rated ? "" : " (unrated)"}`,
+              });
+            }
+          }
+          battle.ratingDelta = delta;
+          battle.engine.log.push(battle.rated
+            ? `${pet.name} rating ${delta >= 0 ? "+" : ""}${delta} (${pet.rating}).`
+            : "The gap is too wide, or this pair already fought three rated bouts today. Records move. Ratings stay.");
         }
         const leveled = applyXp(pet.level, pet.xp, xp);
         pet.level = leveled.level;
@@ -1409,6 +1637,8 @@ function demoBattleView(s: State, id: string): BattleView {
     xp: pet?.xp ?? 0,
     wins: pet?.wins ?? 0,
     losses: pet?.losses ?? 0,
+    rated: battle.rated,
+    ratingDelta: battle.ratingDelta ?? 0,
   };
 }
 

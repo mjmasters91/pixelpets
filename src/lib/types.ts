@@ -27,6 +27,13 @@ export type Companion = {
   xp: number;
   wins: number;
   losses: number;
+  rating: number;
+  pveWins: number;
+  pveLosses: number;
+  pveStreak: number;
+  pvpWins: number;
+  pvpLosses: number;
+  pvpStreak: number;
 };
 
 export type Stack = {
@@ -243,7 +250,10 @@ export type TownApi = {
   stewardLedger(): Promise<LedgerRow[]>;
   stewardFlags(): Promise<FlaggedGame[]>;
   stewardClearBasket(id: string): Promise<void>;
-  battleOpponents(): Promise<{ id: string; name: string; speciesSlug: string; owner: string; level: number }[]>;
+  battleOpponents(): Promise<PvpTarget[]>;
+  ringRankings(board: "pets" | "keepers" | "week"): Promise<RankingBoard>;
+  ringRecent(): Promise<RecentBout[]>;
+  ringNotices(): Promise<{ id: string; body: string; at: string }[]>;
   startBattle(input: { companionId: string; mode: "pve" | "pvp"; challengerSlug?: string; defenderId?: string; gear: string[] }): Promise<BattleView>;
   battleTurn(battleId: string, action: "attack" | "defend" | "item" | "flee" | "inferno"): Promise<BattleView>;
   getBattle(id: string): Promise<BattleView | null>;
@@ -263,4 +273,47 @@ export type BattleView = {
   xp: number;
   wins: number;
   losses: number;
+  rated?: boolean;
+  ratingDelta?: number;
+};
+
+export type PvpTarget = {
+  id: string;
+  name: string;
+  speciesSlug: string;
+  owner: string;
+  level: number;
+  rating: number;
+  pvpWins: number;
+  pvpLosses: number;
+  pvpStreak: number;
+};
+
+export type RankRow = {
+  rank: number;
+  companionId?: string;
+  name: string;
+  speciesSlug: string;
+  owner: string;
+  level?: number;
+  rating: number;
+  pvpWins: number;
+  pvpLosses?: number;
+  pvpStreak?: number;
+  weekWins?: number;
+  yours?: boolean;
+};
+
+export type RankingBoard = { board: string; rows: RankRow[] };
+
+export type RecentBout = {
+  id: string;
+  at: string;
+  challenger: string;
+  challengerOwner: string;
+  defender: string;
+  defenderOwner: string;
+  defenderWon: boolean;
+  rated: boolean;
+  ratingDelta: number;
 };

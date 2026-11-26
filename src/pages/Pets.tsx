@@ -138,7 +138,10 @@ export function PetPage() {
         <img className="stat-icon heart-mark" src={artPath("heart.webp")} alt="" />
         <Meter kind="hunger" value={pet.hunger} />
         <Meter kind="mood" value={pet.mood} />
-        <p className="muted">{careLine(pet.hunger, pet.mood)} Hatched {new Date(pet.createdAt).toLocaleDateString()}.</p>
+        <p className="muted">{careLine(pet.hunger, pet.mood)} Hatched {new Date(pet.createdAt).toLocaleDateString()}. Ring {pet.rating}, PvP {pet.pvpWins}–{pet.pvpLosses}.</p>
+        {profile && pet.ownerId && pet.ownerId !== profile.id && !speciesBySlug(pet.speciesSlug).exclusive && (
+          <Link className="btn" to={`/ring?vs=${pet.id}`}>Challenge in the ring</Link>
+        )}
         {!pet.ownerId && profile && <button className="btn" type="button" onClick={() => void api.adoptCompanion(pet.id).then(() => api.getCompanion(pet.id)).then(setPet)}>Adopt</button>}
       </div>
     </article>

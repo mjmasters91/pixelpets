@@ -13,6 +13,9 @@ import type {
   PostView,
   Profile,
   PublicKeeper,
+  PvpTarget,
+  RankingBoard,
+  RecentBout,
   ReportRow,
   ScoreRow,
   ShopView,
@@ -458,7 +461,16 @@ export function createLiveApi(): TownApi {
       await rpc("steward_clear_basket", { p_basket_item_id: id });
     },
     async battleOpponents() {
-      return rpc<{ id: string; name: string; speciesSlug: string; owner: string; level: number }[]>("list_pvp_targets");
+      return rpc<PvpTarget[]>("list_pvp_targets");
+    },
+    async ringRankings(board) {
+      return rpc<RankingBoard>("ring_rankings", { p_board: board });
+    },
+    async ringRecent() {
+      return rpc<RecentBout[]>("ring_recent");
+    },
+    async ringNotices() {
+      return rpc<{ id: string; body: string; at: string }[]>("ring_notices");
     },
     async startBattle(input) {
       return rpc("start_battle", {

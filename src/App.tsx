@@ -11,6 +11,7 @@ import { Home } from "./pages/Home";
 import { Adopt, Hatchery, PetPage, Pets } from "./pages/Pets";
 import { KeeperPage } from "./pages/Profile";
 import { SatchelPage } from "./pages/Satchel";
+import { Rankings } from "./pages/Rankings";
 import { RingArena, RingHome } from "./pages/Ring";
 import { ShopPage } from "./pages/Shops";
 import { TownMap, TownPicker } from "./pages/TownMap";
@@ -50,6 +51,7 @@ export default function App() {
             <Route path="lands/:slug/town" element={<TownMap />} />
             <Route path="shops" element={<TownPicker />} />
             <Route path="ring" element={<RingHome />} />
+            <Route path="ring/rankings" element={<Rankings />} />
             <Route path="ring/:battleId" element={<RingArena />} />
             <Route path="shops/:slug" element={<ShopPage />} />
             <Route path="greenboard" element={<TradeBoard />} />

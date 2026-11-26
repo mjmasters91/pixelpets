@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import { PetPortrait } from "../components/PetPortrait";
+import { speciesBySlug } from "../data/catalog";
 import { Glims, Meter } from "../components/Ui";
 import type { PublicKeeper } from "../lib/types";
 import { useTown } from "../state/Town";
@@ -38,13 +39,18 @@ export function KeeperPage() {
       </section>
       <div className="nest-grid">
         {keeper.companions.map((pet) => (
-          <Link key={pet.id} to={`/pets/${pet.id}`} className="nest-card">
-            <div className="pet-frame"><PetPortrait species={pet.speciesSlug} tint={pet.tintSlug} alt={pet.name} /></div>
-            <h3>{pet.name}</h3>
-            <p className="muted">{pet.speciesName} · level {pet.level} · ring {pet.wins}–{pet.losses}</p>
+          <article key={pet.id} className="nest-card">
+            <Link to={`/pets/${pet.id}`}>
+              <div className="pet-frame"><PetPortrait species={pet.speciesSlug} tint={pet.tintSlug} alt={pet.name} /></div>
+              <h3>{pet.name}</h3>
+            </Link>
+            <p className="muted">{pet.speciesName} · level {pet.level} · {pet.rating} rating · {pet.pvpWins}–{pet.pvpLosses}</p>
             <Meter kind="hunger" value={pet.hunger} />
             <Meter kind="mood" value={pet.mood} />
-          </Link>
+            {!mine && profile && !speciesBySlug(pet.speciesSlug).exclusive && (
+              <Link className="btn" to={`/ring?vs=${pet.id}`}>Challenge</Link>
+            )}
+          </article>
         ))}
       </div>
       {mine && (

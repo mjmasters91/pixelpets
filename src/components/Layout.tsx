@@ -25,7 +25,7 @@ function sceneFor(path: string) {
   if (path.startsWith("/shops/") && path !== "/shops") return "shop";
   if (path === "/arcade" || path.startsWith("/arcade/")) return "arcade";
   if (path === "/greenboard" || path.startsWith("/greenboard/")) return "trade";
-  if (path === "/ring") return "ring";
+  if (path === "/ring" || path === "/ring/rankings") return "ring";
   if (path.startsWith("/ring/")) return "ring-fight";
   return "";
 }
@@ -36,6 +36,7 @@ const GROUPS: [string, [string, string][]][] = [
     ["/shops", "Shops"],
     ["/arcade", "Arcade"],
     ["/ring", "Ember Ring"],
+    ["/ring/rankings", "Rankings"],
   ]],
   ["My Stuff", [
     ["/pets", "My Pets"],

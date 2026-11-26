@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { ItemIcon } from "../components/ItemIcon";
 import { PetPortrait } from "../components/PetPortrait";
 import { CHALLENGERS } from "../data/battle";
 import { ITEMS } from "../data/catalog";
 import { artPath } from "../lib/art";
-import type { BattleView } from "../lib/types";
+import type { BattleView, PvpTarget } from "../lib/types";
 import { useTown } from "../state/Town";
 
 function gearKey(id: string) {
@@ -14,16 +14,19 @@ function gearKey(id: string) {
 
 export function RingHome() {
   const { api, act, companions, profile, satchel } = useTown();
-  const [companionId, setCompanionId] = useState(companions[0]?.id ?? "");
+  const [params] = useSearchParams();
+  const [companionId, setCompanionId] = useState(params.get("with") || companions.find((pet) => pet.speciesSlug !== "crownwyrm")?.id || companions[0]?.id || "");
   const [gear, setGear] = useState<string[]>([]);
-  const [opponents, setOpponents] = useState<{ id: string; name: string; speciesSlug: string; owner: string; level: number }[]>([]);
+  const [opponents, setOpponents] = useState<PvpTarget[]>([]);
+  const [notices, setNotices] = useState<{ id: string; body: string }[]>([]);
   const gearItems = satchel.filter((item) => ["weapon", "shield", "potion"].includes(item.category));
   useEffect(() => {
     if (companions[0] && !companionId) setCompanionId(companions[0].id);
   }, [companions, companionId]);
   useEffect(() => {
     api.battleOpponents().then(setOpponents).catch(() => setOpponents([]));
-  }, [api]);
+    if (profile) api.ringNotices().then(setNotices).catch(() => setNotices([]));
+  }, [api, profile]);
   function toggle(slug: string) {
     setGear((current) => current.includes(slug) ? current.filter((item) => item !== slug) : current.length >= 2 ? current : [...current, slug]);
   }
@@ -45,6 +48,7 @@ export function RingHome() {
         <p className="kicker">Cinderreach</p>
         <h1>The Ember Ring</h1>
         <p>A friendly cliff ring. Pick a companion, carry up to two pieces of gear, and choose a challenger. Wins can pay Glims, up to ten rewarded bouts and 1,500 Glims a Wick-Time day.</p>
+        <p><Link to="/ring/rankings">Open the rankings</Link></p>
       </div>
       <section className="card">
         <label className="field">Your companion
@@ -79,13 +83,17 @@ export function RingHome() {
       </section>
       <section className="card">
         <h2>Challenge a keeper</h2>
-        <p>Their companion is played by the ring, not by them. They will see the result on their record.</p>
-        {opponents.map((foe) => (
-          <div key={foe.id} className="inline">
-            <span>{foe.name} · {foe.owner} · level {foe.level}</span>
-            <button className="btn secondary" type="button" onClick={() => void act(() => start("pvp", foe.id))}>Challenge</button>
-          </div>
-        ))}
+        <p>Their companion is played by the ring. A close bout moves both ratings. The same pair can be rated three times a Wick-Time day.</p>
+        {notices.slice(0, 3).map((note) => <p key={note.id} className="muted">{note.body}</p>)}
+        <div className="stack">
+          {opponents.map((foe) => (
+            <div key={foe.id} className={`inline challenge-row ${params.get("vs") === foe.id ? "yours" : ""}`}>
+              <PetPortrait species={foe.speciesSlug} alt="" className="challenge-pet" />
+              <span>{foe.name} · {foe.owner} · {foe.rating} · {foe.pvpWins}–{foe.pvpLosses}</span>
+              <button className="btn secondary" type="button" disabled={!companionId || companions.find((pet) => pet.id === companionId)?.speciesSlug === "crownwyrm"} onClick={() => void act(() => start("pvp", foe.id))}>Challenge</button>
+            </div>
+          ))}
+        </div>
         {opponents.length === 0 && <p className="muted">No other companions are waiting.</p>}
       </section>
     </div>
@@ -136,7 +144,7 @@ export function RingArena() {
         {done ? (
           <>
             <h1>{battle.status === "won" ? "The ring is yours" : battle.status === "lost" ? "A bow, and step back" : "You left the ring"}</h1>
-            <p>{battle.rewardXp} experience{battle.rewardGlims ? ` and ${battle.rewardGlims} Glims` : ""}. Level {battle.level}. Record {battle.wins}–{battle.losses}.</p>
+            <p>{battle.rewardXp} experience{battle.rewardGlims ? ` and ${battle.rewardGlims} Glims` : ""}. Level {battle.level}. Record {battle.wins}–{battle.losses}.{battle.mode === "pvp" && battle.rated ? ` Rating ${battle.ratingDelta && battle.ratingDelta > 0 ? "+" : ""}${battle.ratingDelta ?? 0}.` : ""}</p>
             <Link className="btn" to="/ring">Another bout</Link>
           </>
         ) : (
