@@ -49,7 +49,7 @@ export function LandPage() {
         ))}
       </div>
       <div className="row-actions">
-        <Link className="btn" to={`/lands/${land.slug}/town`}>Walk the town</Link>
+        <Link className="btn" to={`/towns/${land.slug}`}>Walk the town</Link>
         {land.slug === "cinderreach" && <Link className="btn secondary" to="/ring">Ember Ring</Link>}
         {shop && <Link className="btn secondary" to={`/shops/${shop.slug}`}>{shop.name}</Link>}
         {links.map((link) => <Link key={link.to} className="btn secondary" to={link.to}>{link.label}</Link>)}

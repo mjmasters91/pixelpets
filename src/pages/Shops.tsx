@@ -48,7 +48,7 @@ export function ShopPage() {
         <p>{front?.greeting ?? shop.blurb}</p>
         <p className="muted">{shop.keeper} · restock {new Date(shop.nextRestockAt).toLocaleTimeString()}</p>
         {profile && <Glims amount={glims} />}
-        <p><Link to={`/lands/${shop.landSlug}/town`}>Back to the town</Link></p>
+        <p><Link to={`/towns/${shop.landSlug}`}>Back to the town</Link></p>
       </div>
       <div className="shop-wares">
         {shop.lines.map((line) => (

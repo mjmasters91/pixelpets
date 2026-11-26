@@ -33,7 +33,7 @@ function sceneFor(path: string) {
 const GROUPS: [string, [string, string][]][] = [
   ["Explore", [
     ["/lands", "Lands"],
-    ["/shops", "Shops"],
+    ["/towns", "Towns"],
     ["/arcade", "Arcade"],
     ["/ring", "Ember Ring"],
     ["/ring/rankings", "Rankings"],

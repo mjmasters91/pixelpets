@@ -1,5 +1,5 @@
 import { Component, type ReactNode } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { Arcade, GamePage } from "./pages/Arcade";
 import { Join, SignIn } from "./pages/Auth";
@@ -14,7 +14,7 @@ import { SatchelPage } from "./pages/Satchel";
 import { Rankings } from "./pages/Rankings";
 import { RingArena, RingHome } from "./pages/Ring";
 import { ShopPage } from "./pages/Shops";
-import { TownMap, TownPicker } from "./pages/TownMap";
+import { TownMap, TownsPage } from "./pages/TownMap";
 import { ListingPage, TradeBoard } from "./pages/Trades";
 import { LandPage, Lands } from "./pages/World";
 import { TownProvider } from "./state/Town";
@@ -49,7 +49,9 @@ export default function App() {
             <Route path="lands" element={<Lands />} />
             <Route path="lands/:slug" element={<LandPage />} />
             <Route path="lands/:slug/town" element={<TownMap />} />
-            <Route path="shops" element={<TownPicker />} />
+            <Route path="towns" element={<TownsPage />} />
+            <Route path="towns/:slug" element={<TownsPage />} />
+            <Route path="shops" element={<Navigate to="/towns" replace />} />
             <Route path="ring" element={<RingHome />} />
             <Route path="ring/rankings" element={<Rankings />} />
             <Route path="ring/:battleId" element={<RingArena />} />

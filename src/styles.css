@@ -309,6 +309,40 @@ p { line-height: 1.5; }
 .tip { top: 42%; max-width: 90%; white-space: normal; text-align: center; }
 .hotspot:hover .sign, .hotspot:focus-visible .sign, .hotspot:hover .tip, .hotspot:focus-visible .tip { opacity: 1; }
 .town-fallback { display: none; gap: 8px; flex-wrap: wrap; }
+.town-stage { position: relative; }
+.town-stage.next { animation: town-next 320ms ease; }
+.town-stage.prev { animation: town-prev 320ms ease; }
+@keyframes town-next { from { transform: translateX(36px); opacity: .35; } to { transform: none; opacity: 1; } }
+@keyframes town-prev { from { transform: translateX(-36px); opacity: .35; } to { transform: none; opacity: 1; } }
+.town-arrow {
+  position: absolute;
+  top: 42%;
+  z-index: 4;
+  width: 58px;
+  height: 84px;
+  border-radius: 18px;
+  border: 4px solid #8a5408;
+  background: linear-gradient(180deg, #fff6cc, #f0b429);
+  color: #3a2a12;
+  font-size: 48px;
+  line-height: 1;
+  font-weight: 800;
+  box-shadow: inset 0 2px 0 #fff, 0 4px 0 #6a3e08;
+  cursor: pointer;
+}
+.town-arrow.prev { left: 10px; }
+.town-arrow.next { right: 10px; }
+.town-dots { display: flex; justify-content: center; gap: 10px; }
+.town-dots button {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 3px solid #f0b429;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+.town-dots button.on { background: #f0b429; }
 .storefront { display: grid; grid-template-columns: 260px 1fr; gap: 14px; align-items: stretch; }
 .keeper-card { text-align: center; background: linear-gradient(180deg, #fff6df, #f3d7a2); }
 .wood-shelf {
