@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { GAMES, LANDS, SPECIES } from "../data/catalog";
-import { PetPortrait } from "../components/PetPortrait";
+import { GAMES } from "../data/catalog";
 import { Meter } from "../components/Ui";
 import { featuredGame } from "../lib/rules";
 import type { DailyStatus } from "../lib/types";
@@ -63,23 +62,6 @@ export function Home() {
           </div>
         </section>
       </div>
-
-      <section>
-        <p className="kicker">Ferry map</p>
-        <h2>Four lands</h2>
-        <div className="grid-4">
-          {LANDS.map((land) => {
-            const resident = SPECIES.find((species) => species.home === land.slug);
-            return (
-              <Link key={land.slug} to={`/lands/${land.slug}`} className={`card land-tile land-${land.slug === "harborlight" ? "harbor" : land.slug === "mossglen" ? "moss" : land.slug === "cinderreach" ? "cinder" : "shoal"}`}>
-                <strong>{land.name}</strong>
-                <span>{land.tagline}</span>
-                {resident && <PetPortrait className="mini-pet" species={resident.slug} alt="" />}
-              </Link>
-            );
-          })}
-        </div>
-      </section>
 
       <section>
         <p className="kicker">The Arcade</p>

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { xpToLevel } from "../data/battle";
 import { LANDS, PET_CAP, SPECIES, TINTS, speciesBySlug } from "../data/catalog";
 import { PetPortrait } from "../components/PetPortrait";
 import { Meter } from "../components/Ui";
@@ -28,6 +29,7 @@ export function Pets() {
             </Link>
             <h2>{pet.name}</h2>
             <p className="muted">{pet.speciesName} · level {pet.level} · {pet.pveWins + pet.pvpWins}–{pet.pveLosses + pet.pvpLosses}</p>
+            <div className="xp" aria-label={`${pet.xp} of ${xpToLevel(pet.level)} experience`}><div style={{ width: `${Math.min(100, Math.round((pet.xp / xpToLevel(pet.level)) * 100))}%` }} /></div>
             <img className="stat-icon heart-mark" src={artPath("heart.webp")} alt="" />
             <Meter kind="hunger" value={pet.hunger} />
             <Meter kind="mood" value={pet.mood} />
@@ -36,8 +38,9 @@ export function Pets() {
           </article>
         ) : (
           <article key={`empty-${index}`} className="card slot">
-            <div className="pet-frame" />
+            <div className="pet-frame empty-slot" aria-hidden="true">+</div>
             <h2>Empty slot</h2>
+            <p className="muted">A companion can live here.</p>
             <div className="row-actions">
               <Link className="btn" to="/adopt">Adopt</Link>
               <Link className="btn secondary" to="/create">Hatch</Link>

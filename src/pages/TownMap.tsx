@@ -17,7 +17,7 @@ export function TownCanvas({ slug }: { slug: string }) {
   return (
     <>
       <div className="town-map">
-        <img src={`${import.meta.env.BASE_URL}art/towns/${town.slug}.jpg`} alt={`${land.name} town, with shop buildings and blank signs`} />
+        <img src={`${import.meta.env.BASE_URL}art/towns/${town.slug}.jpg`} alt={`${land.name} town, with shop buildings and blank signs`} decoding="async" />
         {town.spots.map((spot) => {
           const shop = SHOPS.find((item) => item.slug === spot.shopSlug);
           return (
@@ -127,7 +127,7 @@ export function TownsPage() {
   );
 }
 
-export function TownMap() {
+export function TownRedirect() {
   const { slug = "" } = useParams();
   return <Navigate to={TOWNS.some((town) => town.slug === slug) ? `/towns/${slug}` : "/towns"} replace />;
 }

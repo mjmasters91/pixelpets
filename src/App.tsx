@@ -14,9 +14,8 @@ import { SatchelPage } from "./pages/Satchel";
 import { Rankings } from "./pages/Rankings";
 import { RingArena, RingHome } from "./pages/Ring";
 import { ShopPage } from "./pages/Shops";
-import { TownMap, TownsPage } from "./pages/TownMap";
+import { TownRedirect, TownsPage } from "./pages/TownMap";
 import { ListingPage, TradeBoard } from "./pages/Trades";
-import { LandPage, Lands } from "./pages/World";
 import { TownProvider } from "./state/Town";
 
 class Boundary extends Component<{ children: ReactNode }, { failed: boolean }> {
@@ -46,9 +45,9 @@ export default function App() {
             <Route path="create" element={<Hatchery />} />
             <Route path="adopt" element={<Adopt />} />
             <Route path="satchel" element={<SatchelPage />} />
-            <Route path="lands" element={<Lands />} />
-            <Route path="lands/:slug" element={<LandPage />} />
-            <Route path="lands/:slug/town" element={<TownMap />} />
+            <Route path="lands" element={<TownRedirect />} />
+            <Route path="lands/:slug" element={<TownRedirect />} />
+            <Route path="lands/:slug/town" element={<TownRedirect />} />
             <Route path="towns" element={<TownsPage />} />
             <Route path="towns/:slug" element={<TownsPage />} />
             <Route path="shops" element={<Navigate to="/towns" replace />} />

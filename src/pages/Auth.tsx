@@ -32,10 +32,10 @@ export function Join() {
       <h1>Take a quay name</h1>
       <p>Usernames are public. The first confirmed signup is granted 500 Glims by the books, not by this page.</p>
       {demo && <p className="banner">This sample town keeps the account in your browser only.</p>}
-      <label className="field">Username<input value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} required /></label>
-      <label className="field">Display name<input value={form.displayName} onChange={(e) => setForm({ ...form, displayName: e.target.value })} /></label>
-      <label className="field">Email<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></label>
-      <label className="field">Password<input type="password" minLength={8} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required /></label>
+      <label className="field">Username<input autoComplete="username" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} required /></label>
+      <label className="field">Display name<input autoComplete="nickname" value={form.displayName} onChange={(e) => setForm({ ...form, displayName: e.target.value })} /></label>
+      <label className="field">Email<input type="email" autoComplete="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></label>
+      <label className="field">Password<input type="password" autoComplete="new-password" minLength={8} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required /></label>
       {note && <p className="banner">{note}</p>}
       <button className="btn" type="submit">Create keeper</button>
       <p>Already known here? <Link to="/sign-in">Sign in</Link></p>
@@ -57,7 +57,7 @@ export function SignIn() {
       <h1>Back to the quay</h1>
       {demo && <p className="banner">Sample mail: mira@example.com, or sender@example.com for the steward desk. Any password works here.</p>}
       <form onSubmit={(event) => { event.preventDefault(); void act(async () => { await api.signIn(email, password || "sample-town"); navigate("/"); }, "Signed in."); }}>
-        <label className="field">Email<input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></label>
+        <label className="field">Email<input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></label>
         {!demo && <label className="field">Password<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required /></label>}
         <button className="btn" type="submit">Sign in</button>
       </form>

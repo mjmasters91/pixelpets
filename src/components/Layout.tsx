@@ -32,7 +32,6 @@ function sceneFor(path: string) {
 
 const GROUPS: [string, [string, string][]][] = [
   ["Explore", [
-    ["/lands", "Lands"],
     ["/towns", "Towns"],
     ["/arcade", "Arcade"],
     ["/ring", "Ember Ring"],
@@ -140,7 +139,7 @@ export function Layout() {
         </nav>
       </aside>
       <div className="main-col">
-        <main className="shell">
+        <main className="shell page-enter" key={location.pathname}>
           {town.banner && <p className="banner bad">{town.banner}</p>}
           <Outlet />
         </main>

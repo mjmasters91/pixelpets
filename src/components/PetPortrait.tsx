@@ -31,5 +31,5 @@ export function PetPortrait({
       cancel = true;
     };
   }, [src, species, tint]);
-  return <img className={className ?? "pet-img"} src={url} alt={alt} />;
+  return <img className={className ?? "pet-img"} src={url} alt={alt} loading="lazy" decoding="async" />;
 }

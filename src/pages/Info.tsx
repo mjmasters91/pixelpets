@@ -43,11 +43,14 @@ export function Privacy() {
 
 export function Missing() {
   return (
-    <div className="card">
+    <div className="card missing">
       <p className="kicker">404</p>
       <h1>This ferry does not stop here</h1>
-      <p>The path is not on the map.</p>
-      <Link className="btn" to="/">Back to Harborlight</Link>
+      <p>That path is not on the quay map. The towns, the nest, and the Ember Ring are still lit.</p>
+      <div className="row-actions">
+        <Link className="btn" to="/">Back home</Link>
+        <Link className="btn secondary" to="/towns">Visit the towns</Link>
+      </div>
     </div>
   );
 }

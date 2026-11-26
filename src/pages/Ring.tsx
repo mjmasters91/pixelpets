@@ -112,6 +112,7 @@ export function RingArena() {
   const { api, act } = useTown();
   const [battle, setBattle] = useState<BattleView | null>(null);
   const [fx, setFx] = useState<"" | "lunge" | "foe" | "inferno">("");
+  const [hits, setHits] = useState<{ you: string; foe: string; key: number }>({ you: "", foe: "", key: 0 });
   const carried = useMemo(() => {
     try {
       const raw = sessionStorage.getItem(gearKey(battleId));
@@ -132,6 +133,14 @@ export function RingArena() {
     const next = await api.battleTurn(battleId, action);
     setBattle(next);
     const recent = next.log.slice(-3).join(" ");
+    const popped = { you: "", foe: "" };
+    for (const line of next.log.slice(-3)) {
+      const hit = line.match(/(?:strikes|hits) (.+?) for (\d+)/);
+      if (!hit) continue;
+      if (hit[1] === next.you.name) popped.you = hit[2];
+      if (hit[1] === next.foe.name) popped.foe = hit[2];
+    }
+    if (popped.you || popped.foe) setHits((prev) => ({ ...popped, key: prev.key + 1 }));
     if (recent.includes("Inferno Crown")) setFx("inferno");
     else if (action === "attack") setFx("lunge");
     else setFx("foe");
@@ -143,10 +152,10 @@ export function RingArena() {
     <div className="stack">
       <div className={`ring-stand ${fx === "inferno" ? "is-inferno" : ""}`}>
         {fx === "inferno" && <div className="flame-burst" aria-hidden="true" />}
-        <FighterCard who={battle.you} lunge={fx === "lunge" || fx === "inferno"} shake={false} />
-        <FighterCard who={battle.foe} lunge={false} shake={fx === "foe" || fx === "inferno"} />
+        <FighterCard who={battle.you} lunge={fx === "lunge" || fx === "inferno"} shake={fx === "foe"} hit={hits.you} hitKey={hits.key} />
+        <FighterCard who={battle.foe} lunge={false} shake={fx === "lunge" || fx === "inferno"} hit={hits.foe} hitKey={hits.key} />
       </div>
-      <section className="card ring-dock">
+      <section className={`card ring-dock ${done ? `banner-${battle.status}` : ""}`}>
         <p className="kicker">Ember Ring · round {battle.round}</p>
         {done ? (
           <>
@@ -178,11 +187,14 @@ export function RingArena() {
   );
 }
 
-function FighterCard({ who, shake, lunge }: { who: { name: string; speciesSlug: string; hp: number; maxHp: number }; shake: boolean; lunge: boolean }) {
+function FighterCard({ who, shake, lunge, hit, hitKey }: { who: { name: string; speciesSlug: string; hp: number; maxHp: number }; shake: boolean; lunge: boolean; hit: string; hitKey: number }) {
   const pct = Math.max(0, Math.round((who.hp / who.maxHp) * 100));
   return (
     <article className={`fighter ${shake ? "shake" : ""} ${lunge ? "lunge" : ""} ${pct < 35 ? "flash" : ""}`}>
-      <div className="pet-frame"><PetPortrait species={who.speciesSlug} alt={who.name} /></div>
+      <div className="pet-frame">
+        <PetPortrait species={who.speciesSlug} alt={who.name} />
+        {hit && <span className="dmg-pop" key={hitKey}>-{hit}</span>}
+      </div>
       <h2>{who.name}</h2>
       <div className="hp-row">
         <img className="stat-icon" src={artPath("heart.webp")} alt="" />
