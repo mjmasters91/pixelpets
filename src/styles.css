@@ -479,6 +479,39 @@ body[data-scene="login"] .shell {
 body[data-scene="login"] .btn.ghost { color: #ffe08a; border-color: #ffe08a; }
 body[data-scene="shop"] .shop-blurb { max-width: 280px; }
 body[data-scene="shop"] .shop-page { margin-top: 6vh; }
+.item-tip { display: inline-flex; }
+.item-tooltip {
+  position: fixed;
+  z-index: 80;
+  width: 260px;
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 8px;
+  align-items: start;
+  padding: 10px;
+  color: #fff8ee;
+  background: rgba(22, 14, 52, .94);
+  border: 3px solid #f0b429;
+  border-radius: 16px;
+  box-shadow: 0 10px 0 rgba(0,0,0,.35);
+  pointer-events: none;
+}
+.item-tooltip .kicker { color: #ffe08a; margin: 0; }
+.item-tooltip p { margin: 2px 0; font-size: 13px; }
+.item-tooltip .item-icon { width: 64px; height: 64px; }
+.crown-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 2px solid #f0b429;
+  background: linear-gradient(180deg, #fff6cc, #e09a12);
+  color: #3a2a12;
+  font-family: var(--body);
+  font-size: 12px;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
 .rank-row { display: grid; grid-template-columns: 36px 72px 1fr auto; gap: 10px; align-items: center; }
 .rank-row.yours, .challenge-row.yours { box-shadow: 0 0 0 3px #ffe08a, 0 8px 0 rgba(0,0,0,.22); }
 .rank-num { font-family: var(--display); font-size: 28px; }

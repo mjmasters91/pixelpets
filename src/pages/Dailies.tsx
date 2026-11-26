@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ItemIcon } from "../components/ItemIcon";
-import { ITEMS } from "../data/catalog";
+import { ItemTip } from "../components/ItemTip";
 import type { BasketRow, DailyStatus } from "../lib/types";
 import { useTown } from "../state/Town";
 
@@ -47,7 +47,9 @@ export function DailiesPage() {
           {basket.map((row) => (
             <div key={row.id} className="inline">
               <span className="lot">
-                <ItemIcon slug={row.itemSlug} category={ITEMS.find((item) => item.slug === row.itemSlug)?.category ?? "misc"} alt="" />
+                <ItemTip item={{ slug: row.itemSlug, name: row.name, category: row.category ?? "misc", description: row.description, hunger: row.hunger, mood: row.mood, gearPower: row.gearPower, reusable: row.reusable }}>
+                  <ItemIcon slug={row.itemSlug} category={row.category ?? "misc"} alt="" />
+                </ItemTip>
                 {row.name} {row.donor ? <span className="muted">from {row.donor}</span> : null}
               </span>
               <button className="btn secondary" type="button" onClick={() => void act(() => api.takeBasket(row.id), `Took ${row.name}.`).then(load)}>Take</button>

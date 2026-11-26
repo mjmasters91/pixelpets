@@ -44,6 +44,8 @@ export type Stack = {
   reusable: boolean;
   hunger: number;
   mood: number;
+  description?: string;
+  gearPower?: number;
 };
 
 export type DailyStatus = {
@@ -59,6 +61,12 @@ export type BasketRow = {
   itemSlug: string;
   name: string;
   donor: string | null;
+  category?: string;
+  description?: string;
+  hunger?: number;
+  mood?: number;
+  gearPower?: number;
+  reusable?: boolean;
 };
 
 export type ShopLine = {
@@ -73,6 +81,7 @@ export type ShopLine = {
   hunger: number;
   mood: number;
   reusable: boolean;
+  gearPower?: number;
 };
 
 export type ShopView = {
@@ -87,7 +96,17 @@ export type ShopView = {
   lines: ShopLine[];
 };
 
-export type TradeLot = { itemSlug: string; name: string; qty: number };
+export type TradeLot = {
+  itemSlug: string;
+  name: string;
+  qty: number;
+  category?: string;
+  description?: string;
+  hunger?: number;
+  mood?: number;
+  gearPower?: number;
+  reusable?: boolean;
+};
 export type TradeOffer = {
   id: string;
   buyerId: string;
@@ -251,7 +270,7 @@ export type TownApi = {
   stewardFlags(): Promise<FlaggedGame[]>;
   stewardClearBasket(id: string): Promise<void>;
   battleOpponents(): Promise<PvpTarget[]>;
-  ringRankings(board: "pets" | "keepers" | "week"): Promise<RankingBoard>;
+  ringRankings(board: "ring" | "pets" | "keepers" | "week"): Promise<RankingBoard>;
   ringRecent(): Promise<RecentBout[]>;
   ringNotices(): Promise<{ id: string; body: string; at: string }[]>;
   startBattle(input: { companionId: string; mode: "pve" | "pvp"; challengerSlug?: string; defenderId?: string; gear: string[] }): Promise<BattleView>;
@@ -300,6 +319,9 @@ export type RankRow = {
   pvpWins: number;
   pvpLosses?: number;
   pvpStreak?: number;
+  pveWins?: number;
+  pveLosses?: number;
+  pveStreak?: number;
   weekWins?: number;
   yours?: boolean;
 };

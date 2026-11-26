@@ -5,6 +5,7 @@ import type { RankingBoard, RecentBout } from "../lib/types";
 import { useTown } from "../state/Town";
 
 const BOARDS = [
+  ["ring", "Ring record"],
   ["pets", "Top pets"],
   ["keepers", "Top keepers"],
   ["week", "This week"],
@@ -13,7 +14,7 @@ const BOARDS = [
 export function Rankings() {
   const { api, profile, companions } = useTown();
   const navigate = useNavigate();
-  const [board, setBoard] = useState<(typeof BOARDS)[number][0]>("pets");
+  const [board, setBoard] = useState<(typeof BOARDS)[number][0]>("ring");
   const [table, setTable] = useState<RankingBoard | null>(null);
   const [recent, setRecent] = useState<RecentBout[]>([]);
   const [notices, setNotices] = useState<{ id: string; body: string; at: string }[]>([]);
@@ -31,7 +32,7 @@ export function Rankings() {
       <div className="card rank-head">
         <p className="kicker">Ember Ring</p>
         <h1>Rankings</h1>
-        <p>Ratings move only when two keepers’ companions fight, and only when the bout is close enough to count. Crownwyrm stays off these boards.</p>
+        <p>Ring Record counts every bout, including Crownwyrm. The rating boards stay PvP only, and Crownwyrm stays off those.</p>
         <div className="row-actions">
           {BOARDS.map(([id, label]) => (
             <button key={id} className={`btn ${board === id ? "" : "secondary"}`} type="button" onClick={() => setBoard(id)}>{label}</button>
@@ -54,10 +55,14 @@ export function Rankings() {
             <strong className="rank-num">{row.rank}</strong>
             <div className="pet-frame rank-pet"><PetPortrait species={row.speciesSlug} alt="" /></div>
             <div>
-              <h2>{row.name}</h2>
+              <h2>{row.name}{row.speciesSlug === "crownwyrm" && <span className="crown-badge">Crown</span>}</h2>
               <p className="muted">{row.owner}{row.level ? ` · level ${row.level}` : ""}</p>
-              <p>{row.weekWins != null ? `${row.weekWins} wins this week` : `${row.rating} rating`}</p>
-              {row.pvpLosses != null && <p className="muted">{row.pvpWins}–{row.pvpLosses}{row.pvpStreak ? ` · streak ${row.pvpStreak}` : ""}</p>}
+              {board === "ring" ? (
+                <p>{(row.pveWins ?? 0) + row.pvpWins}–{(row.pveLosses ?? 0) + (row.pvpLosses ?? 0)} · PvE {row.pveWins ?? 0}–{row.pveLosses ?? 0} · PvP {row.pvpWins}–{row.pvpLosses ?? 0}{(row.pveStreak || row.pvpStreak) ? ` · streak ${row.pveStreak || row.pvpStreak}` : ""}</p>
+              ) : (
+                <p>{row.weekWins != null ? `${row.weekWins} wins this week` : `${row.rating} rating`}</p>
+              )}
+              {board !== "ring" && row.pvpLosses != null && <p className="muted">{row.pvpWins}–{row.pvpLosses}{row.pvpStreak ? ` · streak ${row.pvpStreak}` : ""}</p>}
               {board === "keepers" && <p className="muted">{row.pvpWins} keeper wins</p>}
             </div>
             {profile && row.companionId && !row.yours && challenger && (

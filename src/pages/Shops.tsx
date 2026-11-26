@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ItemIcon } from "../components/ItemIcon";
+import { ItemTip } from "../components/ItemTip";
 import { SHOPS } from "../data/catalog";
 import { Glims } from "../components/Ui";
 import type { ShopView } from "../lib/types";
@@ -52,7 +53,9 @@ export function ShopPage() {
       <div className="shop-wares">
         {shop.lines.map((line) => (
           <article key={line.itemSlug} className="item-card">
-            <ItemIcon slug={line.itemSlug} category={line.category} alt="" />
+            <ItemTip item={{ slug: line.itemSlug, name: line.name, category: line.category, description: line.description, hunger: line.hunger, mood: line.mood, gearPower: line.gearPower, reusable: line.reusable, price: line.price }}>
+              <ItemIcon slug={line.itemSlug} category={line.category} alt="" />
+            </ItemTip>
             <h3>{line.name}</h3>
             <p className="muted">{line.qty} left</p>
             <div className="price"><Glims amount={line.price} /></div>

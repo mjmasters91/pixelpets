@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { ItemIcon } from "../components/ItemIcon";
+import { ItemTip } from "../components/ItemTip";
 import { PetPortrait } from "../components/PetPortrait";
 import { CHALLENGERS } from "../data/battle";
 import { ITEMS } from "../data/catalog";
@@ -53,14 +54,20 @@ export function RingHome() {
       <section className="card">
         <label className="field">Your companion
           <select value={companionId} onChange={(event) => setCompanionId(event.target.value)}>
-            {companions.map((pet) => <option key={pet.id} value={pet.id}>{pet.name} · level {pet.level} · {pet.wins}–{pet.losses}</option>)}
+            {companions.map((pet) => <option key={pet.id} value={pet.id}>{pet.name} · level {pet.level} · {(pet.pveWins + pet.pvpWins)}–{(pet.pveLosses + pet.pvpLosses)}</option>)}
           </select>
         </label>
-        <p className="muted">Gear in the satchel. Two slots.</p>
+        <p className="muted">Gear in the satchel. Two slots. {(() => {
+          const pet = companions.find((row) => row.id === companionId);
+          if (!pet) return null;
+          return <>Record {pet.pveWins + pet.pvpWins}–{pet.pveLosses + pet.pvpLosses} · PvE {pet.pveWins}–{pet.pveLosses} · PvP {pet.pvpWins}–{pet.pvpLosses}.</>;
+        })()}</p>
         <div className="row-actions">
           {gearItems.map((item) => (
             <button key={item.itemSlug} type="button" className={`btn gear-btn ${gear.includes(item.itemSlug) ? "" : "secondary"}`} onClick={() => toggle(item.itemSlug)}>
-              <ItemIcon slug={item.itemSlug} category={item.category} />
+              <ItemTip focusable={false} item={{ slug: item.itemSlug, name: item.name, category: item.category, description: item.description, hunger: item.hunger, mood: item.mood, gearPower: item.gearPower, reusable: item.reusable }}>
+                <ItemIcon slug={item.itemSlug} category={item.category} />
+              </ItemTip>
               {item.name}
             </button>
           ))}

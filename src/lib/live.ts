@@ -140,16 +140,18 @@ export function createLiveApi(): TownApi {
     },
     async satchel() {
       const id = await userId();
-      const { data, error } = await sb().from("satchel_stacks").select("qty, item:item_id(slug, name, category, reusable, hunger_delta, mood_delta)").eq("profile_id", id);
+      const { data, error } = await sb().from("satchel_stacks").select("qty, item:item_id(slug, name, category, description, reusable, hunger_delta, mood_delta, gear_power)").eq("profile_id", id);
       fail(error);
-      return ((data ?? []) as unknown as { qty: number; item: { slug: string; name: string; category: string; reusable: boolean; hunger_delta: number; mood_delta: number } }[]).map((row) => ({
+      return ((data ?? []) as unknown as { qty: number; item: { slug: string; name: string; category: string; description: string; reusable: boolean; hunger_delta: number; mood_delta: number; gear_power: number } }[]).map((row) => ({
         itemSlug: row.item.slug,
         name: row.item.name,
         qty: row.qty,
         category: row.item.category,
+        description: row.item.description,
         reusable: row.item.reusable,
         hunger: row.item.hunger_delta,
         mood: row.item.mood_delta,
+        gearPower: row.item.gear_power,
       }));
     },
     async dailies() {
@@ -178,13 +180,19 @@ export function createLiveApi(): TownApi {
       await rpc("claim_tide_bowl", { p_companion_id: companionId });
     },
     async basket() {
-      const { data, error } = await sb().from("basket_items").select("id, item:item_id(slug, name), donor:donated_by(username)").order("created_at");
+      const { data, error } = await sb().from("basket_items").select("id, item:item_id(slug, name, category, description, reusable, hunger_delta, mood_delta, gear_power), donor:donated_by(username)").order("created_at");
       fail(error);
-      return ((data ?? []) as unknown as { id: string; item: { slug: string; name: string }; donor: { username: string } | null }[]).map((row) => ({
+      return ((data ?? []) as unknown as { id: string; item: { slug: string; name: string; category: string; description: string; reusable: boolean; hunger_delta: number; mood_delta: number; gear_power: number }; donor: { username: string } | null }[]).map((row) => ({
         id: row.id,
         itemSlug: row.item.slug,
         name: row.item.name,
         donor: row.donor?.username ?? null,
+        category: row.item.category,
+        description: row.item.description,
+        reusable: row.item.reusable,
+        hunger: row.item.hunger_delta,
+        mood: row.item.mood_delta,
+        gearPower: row.item.gear_power,
       }));
     },
     async donate(itemSlug, qty) {
@@ -195,7 +203,7 @@ export function createLiveApi(): TownApi {
     },
     async shops() {
       await rpc("restock_shops");
-      const { data, error } = await sb().from("shops").select("id, slug, name, keeper_name, blurb, next_restock_at, land:land_id(slug, name), shop_stock(qty, price, item:item_id(id, slug, name, category, rarity, description, hunger_delta, mood_delta, reusable))");
+      const { data, error } = await sb().from("shops").select("id, slug, name, keeper_name, blurb, next_restock_at, land:land_id(slug, name), shop_stock(qty, price, item:item_id(id, slug, name, category, rarity, description, hunger_delta, mood_delta, reusable, gear_power))");
       fail(error);
       return ((data ?? []) as Record<string, unknown>[]).map((shop) => {
         const land = shop.land as unknown as { slug: string; name: string };
@@ -223,6 +231,7 @@ export function createLiveApi(): TownApi {
               hunger: Number(item.hunger_delta),
               mood: Number(item.mood_delta),
               reusable: Boolean(item.reusable),
+              gearPower: Number(item.gear_power ?? 0),
             };
           }),
         } satisfies ShopView;
@@ -491,7 +500,7 @@ export function createLiveApi(): TownApi {
 }
 
 async function loadTrades(id: string | null): Promise<TradeView[]> {
-  let query = getSupabase().from("trades").select("id, seller_id, status, ask_glims, wishlist, created_at, expires_at, seller:seller_id(username), trade_lots(qty, item:item_id(slug, name)), trade_offers(id, buyer_id, glims, status, buyer:buyer_id(username), trade_offer_items(qty, item:item_id(slug, name)))").order("created_at", { ascending: false });
+  let query = getSupabase().from("trades").select("id, seller_id, status, ask_glims, wishlist, created_at, expires_at, seller:seller_id(username), trade_lots(qty, item:item_id(slug, name, category, description, reusable, hunger_delta, mood_delta, gear_power)), trade_offers(id, buyer_id, glims, status, buyer:buyer_id(username), trade_offer_items(qty, item:item_id(slug, name, category, description, reusable, hunger_delta, mood_delta, gear_power)))").order("created_at", { ascending: false });
   query = id ? query.eq("id", id) : query.eq("status", "open");
   const { data, error } = await query;
   fail(error);
@@ -500,7 +509,7 @@ async function loadTrades(id: string | null): Promise<TradeView[]> {
 
 function mapTrade(row: Record<string, unknown>): TradeView {
   const seller = row.seller as unknown as { username: string };
-  const lots = (row.trade_lots as unknown as { qty: number; item: { slug: string; name: string } }[]) ?? [];
+  const lots = (row.trade_lots as unknown as { qty: number; item: { slug: string; name: string; category: string; description: string; reusable: boolean; hunger_delta: number; mood_delta: number; gear_power: number } }[]) ?? [];
   const offers = (row.trade_offers as Record<string, unknown>[]) ?? [];
   return {
     id: String(row.id),
@@ -511,17 +520,37 @@ function mapTrade(row: Record<string, unknown>): TradeView {
     wishlist: String(row.wishlist ?? ""),
     createdAt: String(row.created_at),
     expiresAt: String(row.expires_at),
-    lots: lots.map((lot) => ({ itemSlug: lot.item.slug, name: lot.item.name, qty: lot.qty })),
+    lots: lots.map((lot) => ({
+      itemSlug: lot.item.slug,
+      name: lot.item.name,
+      qty: lot.qty,
+      category: lot.item.category,
+      description: lot.item.description,
+      reusable: lot.item.reusable,
+      hunger: lot.item.hunger_delta,
+      mood: lot.item.mood_delta,
+      gearPower: lot.item.gear_power,
+    })),
     offers: offers.map((offer) => {
       const buyer = offer.buyer as unknown as { username: string };
-      const items = (offer.trade_offer_items as unknown as { qty: number; item: { slug: string; name: string } }[]) ?? [];
+      const items = (offer.trade_offer_items as unknown as { qty: number; item: { slug: string; name: string; category: string; description: string; reusable: boolean; hunger_delta: number; mood_delta: number; gear_power: number } }[]) ?? [];
       return {
         id: String(offer.id),
         buyerId: String(offer.buyer_id),
         buyer: buyer?.username ?? "Keeper",
         glims: Number(offer.glims),
         status: String(offer.status),
-        lots: items.map((lot) => ({ itemSlug: lot.item.slug, name: lot.item.name, qty: lot.qty })),
+        lots: items.map((lot) => ({
+          itemSlug: lot.item.slug,
+          name: lot.item.name,
+          qty: lot.qty,
+          category: lot.item.category,
+          description: lot.item.description,
+          reusable: lot.item.reusable,
+          hunger: lot.item.hunger_delta,
+          mood: lot.item.mood_delta,
+          gearPower: lot.item.gear_power,
+        })),
       };
     }),
   };

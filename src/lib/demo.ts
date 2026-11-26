@@ -193,7 +193,7 @@ type DemoBattle = {
   ratingDelta?: number;
 };
 
-let storageKey = "pixelpets-demo-v5";
+let storageKey = "pixelpets-demo-v6";
 let state: State = fresh(false);
 let lastRaw = "";
 const listeners = new Set<() => void>();
@@ -323,7 +323,7 @@ function stackViews(s: State, profileId: string): Stack[] {
     .filter((r) => r.profileId === profileId && r.qty > 0)
     .map((r) => {
       const item = itemBySlug(r.itemSlug);
-      return { itemSlug: r.itemSlug, name: item.name, qty: r.qty, category: item.category, reusable: item.reusable, hunger: item.hunger, mood: item.mood };
+      return { itemSlug: r.itemSlug, name: item.name, qty: r.qty, category: item.category, reusable: item.reusable, hunger: item.hunger, mood: item.mood, description: item.description, gearPower: item.gearPower ?? 0 };
     });
 }
 function shopViews(s: State): ShopView[] {
@@ -355,6 +355,7 @@ function shopViews(s: State): ShopView[] {
           hunger: item.hunger,
           mood: item.mood,
           reusable: item.reusable,
+          gearPower: item.gearPower ?? 0,
         };
       }),
     };
@@ -370,7 +371,10 @@ function tradeView(s: State, trade: Trade): TradeView {
     wishlist: trade.wishlist,
     createdAt: trade.createdAt,
     expiresAt: trade.expiresAt,
-    lots: trade.lots.map((lot) => ({ ...lot, name: itemBySlug(lot.itemSlug).name })),
+    lots: trade.lots.map((lot) => {
+      const item = itemBySlug(lot.itemSlug);
+      return { ...lot, name: item.name, category: item.category, description: item.description, hunger: item.hunger, mood: item.mood, gearPower: item.gearPower ?? 0, reusable: item.reusable };
+    }),
     offers: s.offers
       .filter((o) => o.tradeId === trade.id && (o.status === "open" || o.status === "accepted"))
       .filter((o) => o.buyerId === s.meId || trade.sellerId === s.meId || person(s, s.meId)?.isAdmin)
@@ -380,7 +384,10 @@ function tradeView(s: State, trade: Trade): TradeView {
         buyer: usernameOf(s, o.buyerId) ?? "Keeper",
         glims: o.glims,
         status: o.status,
-        lots: o.lots.map((lot) => ({ ...lot, name: itemBySlug(lot.itemSlug).name })),
+        lots: o.lots.map((lot) => {
+          const item = itemBySlug(lot.itemSlug);
+          return { ...lot, name: item.name, category: item.category, description: item.description, hunger: item.hunger, mood: item.mood, gearPower: item.gearPower ?? 0, reusable: item.reusable };
+        }),
       })),
   };
 }
@@ -486,8 +493,15 @@ function fresh(asSender: boolean): State {
     mood: 100,
     level: 3,
     xp: 10,
-    wins: 2,
-    losses: 0,
+    wins: 16,
+    losses: 1,
+    rating: 1000,
+    pveWins: 16,
+    pveLosses: 1,
+    pveStreak: 6,
+    pvpWins: 0,
+    pvpLosses: 0,
+    pvpStreak: 0,
     createdAt: stamp,
     lastTick: stamp,
     lastPlayedAt: null,
@@ -660,7 +674,7 @@ export function resetDemo() {
   commit(next);
 }
 export function bootDemo(asSender: boolean) {
-  storageKey = asSender ? "pixelpets-demo-v5-sender" : "pixelpets-demo-v5";
+  storageKey = asSender ? "pixelpets-demo-v6-sender" : "pixelpets-demo-v6";
   const saved = localStorage.getItem(storageKey);
   if (saved) {
     try {
@@ -696,9 +710,37 @@ function eloDelta(mine: number, theirs: number, score: number) {
   return Math.round(32 * (score - expected));
 }
 
-function demoRankings(s: State, board: "pets" | "keepers" | "week") {
+function recordTotals(pet: Pet) {
+  const wins = (pet.pveWins ?? 0) + (pet.pvpWins ?? 0);
+  const losses = (pet.pveLosses ?? 0) + (pet.pvpLosses ?? 0);
+  return { wins, losses, rate: wins + losses === 0 ? 0 : wins / (wins + losses) };
+}
+
+function demoRankings(s: State, board: "ring" | "pets" | "keepers" | "week") {
   const me = s.meId;
-  const pets = s.pets.filter((pet) => pet.ownerId && pet.speciesSlug !== "crownwyrm");
+  const pets = s.pets.filter((pet) => pet.ownerId && (board === "ring" || pet.speciesSlug !== "crownwyrm"));
+  if (board === "ring") {
+    const rows = [...pets].sort((a, b) => recordTotals(b).wins - recordTotals(a).wins || recordTotals(b).rate - recordTotals(a).rate || a.name.localeCompare(b.name)).slice(0, 40);
+    return {
+      board,
+      rows: rows.map((pet, index) => ({
+        rank: index + 1,
+        companionId: pet.id,
+        name: pet.name,
+        speciesSlug: pet.speciesSlug,
+        owner: usernameOf(s, pet.ownerId) ?? "Keeper",
+        level: pet.level,
+        rating: pet.rating ?? 1000,
+        pveWins: pet.pveWins ?? 0,
+        pveLosses: pet.pveLosses ?? 0,
+        pveStreak: pet.pveStreak ?? 0,
+        pvpWins: pet.pvpWins ?? 0,
+        pvpLosses: pet.pvpLosses ?? 0,
+        pvpStreak: pet.pvpStreak ?? 0,
+        yours: pet.ownerId === me,
+      })),
+    };
+  }
   if (board === "keepers") {
     const groups = new Map<string, { owner: string; wins: number; rating: number; name: string; speciesSlug: string; yours: boolean }>();
     for (const pet of pets) {
@@ -938,7 +980,10 @@ export function createDemoApi(asSender: boolean): TownApi {
       save(s);
     },
     async basket() {
-      return state.basket.map((row) => ({ id: row.id, itemSlug: row.itemSlug, name: itemBySlug(row.itemSlug).name, donor: usernameOf(state, row.donorId) }));
+      return state.basket.map((row) => {
+        const item = itemBySlug(row.itemSlug);
+        return { id: row.id, itemSlug: row.itemSlug, name: item.name, donor: usernameOf(state, row.donorId), category: item.category, description: item.description, hunger: item.hunger, mood: item.mood, gearPower: item.gearPower ?? 0, reusable: item.reusable };
+      });
     },
     async donate(itemSlug, qty) {
       const s = draft();

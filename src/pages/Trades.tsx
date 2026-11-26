@@ -1,8 +1,8 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ItemIcon } from "../components/ItemIcon";
+import { ItemTip } from "../components/ItemTip";
 import { Glims } from "../components/Ui";
-import { ITEMS } from "../data/catalog";
 import type { TradeLot, TradeView } from "../lib/types";
 import { useTown } from "../state/Town";
 
@@ -12,7 +12,9 @@ function Lots({ lots }: { lots: TradeLot[] }) {
     <span className="lot-row">
       {lots.map((lot) => (
         <span className="lot" key={`${lot.itemSlug}-${lot.qty}`}>
-          <ItemIcon slug={lot.itemSlug} category={ITEMS.find((item) => item.slug === lot.itemSlug)?.category ?? "misc"} alt="" />
+          <ItemTip item={{ slug: lot.itemSlug, name: lot.name, category: lot.category ?? "misc", description: lot.description, hunger: lot.hunger, mood: lot.mood, gearPower: lot.gearPower, reusable: lot.reusable }}>
+            <ItemIcon slug={lot.itemSlug} category={lot.category ?? "misc"} alt="" />
+          </ItemTip>
           {lot.name} ×{lot.qty}
         </span>
       ))}

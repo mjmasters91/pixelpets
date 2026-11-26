@@ -27,7 +27,7 @@ export function Pets() {
               <PetPortrait species={pet.speciesSlug} tint={pet.tintSlug} alt={pet.name} className={pet.hunger < 15 || pet.mood < 15 ? "low-pet" : ""} />
             </Link>
             <h2>{pet.name}</h2>
-            <p className="muted">{pet.speciesName} · level {pet.level} · ring {pet.wins}–{pet.losses}</p>
+            <p className="muted">{pet.speciesName} · level {pet.level} · {pet.pveWins + pet.pvpWins}–{pet.pveLosses + pet.pvpLosses}</p>
             <img className="stat-icon heart-mark" src={artPath("heart.webp")} alt="" />
             <Meter kind="hunger" value={pet.hunger} />
             <Meter kind="mood" value={pet.mood} />
@@ -138,7 +138,7 @@ export function PetPage() {
         <img className="stat-icon heart-mark" src={artPath("heart.webp")} alt="" />
         <Meter kind="hunger" value={pet.hunger} />
         <Meter kind="mood" value={pet.mood} />
-        <p className="muted">{careLine(pet.hunger, pet.mood)} Hatched {new Date(pet.createdAt).toLocaleDateString()}. Ring {pet.rating}, PvP {pet.pvpWins}–{pet.pvpLosses}.</p>
+        <p className="muted">{careLine(pet.hunger, pet.mood)} Hatched {new Date(pet.createdAt).toLocaleDateString()}. Record {pet.pveWins + pet.pvpWins}–{pet.pveLosses + pet.pvpLosses} · PvE {pet.pveWins}–{pet.pveLosses} · PvP {pet.pvpWins}–{pet.pvpLosses}.</p>
         {profile && pet.ownerId && pet.ownerId !== profile.id && !speciesBySlug(pet.speciesSlug).exclusive && (
           <Link className="btn" to={`/ring?vs=${pet.id}`}>Challenge in the ring</Link>
         )}

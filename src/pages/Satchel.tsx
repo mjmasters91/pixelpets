@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ItemIcon } from "../components/ItemIcon";
+import { ItemTip } from "../components/ItemTip";
 import { useTown } from "../state/Town";
 
 export function SatchelPage() {
@@ -15,7 +16,9 @@ export function SatchelPage() {
       <div className="satchel-grid">
         {satchel.map((item) => (
           <article key={item.itemSlug} className="item-card">
-            <ItemIcon slug={item.itemSlug} category={item.category} />
+            <ItemTip item={{ slug: item.itemSlug, name: item.name, category: item.category, description: item.description, hunger: item.hunger, mood: item.mood, gearPower: item.gearPower, reusable: item.reusable }}>
+              <ItemIcon slug={item.itemSlug} category={item.category} />
+            </ItemTip>
             <h3>{item.name}</h3>
             <p className="muted">×{item.qty} · {item.category}</p>
             <label className="field">Donate
